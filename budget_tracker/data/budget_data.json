@@ -55,6 +55,22 @@
       "amount": 500.0,
       "date": "2026-09-05",
       "description": "Monthly premium"
+    },
+    {
+      "id": 8,
+      "type": "income",
+      "category": "Salary",
+      "amount": 1000.0,
+      "date": "2026-09-11",
+      "description": "this is my monthly salary"
+    },
+    {
+      "id": 9,
+      "type": "income",
+      "category": "Salary",
+      "amount": 10000.0,
+      "date": "2026-09-11",
+      "description": "This is my monthly salary"
     }
   ],
   "goals": [
@@ -107,7 +123,7 @@
       "relevance_reason": "I want a proper break after final exams and have wanted to visit Zanzibar for years"
     }
   ],
-  "next_transaction_id": 8,
+  "next_transaction_id": 10,
   "next_goal_id": 5,
   "income_categories": [
     "Salary",
@@ -128,4 +144,4 @@
     "Investment"
   ],
   "last_seen_month": "2026-09"
-}   
+}

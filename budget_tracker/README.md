@@ -1,4 +1,7 @@
 # Personal-Budget-Savings-Goal-Tracker
+## Video demonstration
+[Watch the video from the link below]
+(https://youtu.be/xlHyYueu_7o)
 This is our project repository for our  formative assignment.
 # Personal Budget & Savings Goal Tracker
 

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#e7edf3">
+  <meta name="description" content="Track income, expenses, and savings goals. See where your money comes from, where it goes, and how close you are to your goals.">
+  <meta name="robots" content="noindex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Budget Tracker">
+  <title>Budget Tracker</title>
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <a class="skip" href="#app">Skip to content</a>
+  <div class="sun-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" focusable="false">
+      <g fill="none" stroke="#c98412" stroke-width="1.6" stroke-linecap="round">
+        <circle cx="12" cy="12" r="3.4" fill="#c98412" stroke="none"/>
+        <path d="M12 2.2v2.4M12 19.4v2.4M2.2 12h2.4M19.4 12h2.4M4.9 4.9l1.7 1.7M17.4 17.4l1.7 1.7M19.1 4.9l-1.7 1.7M6.6 17.4l-1.7 1.7"/>
+      </g>
+    </svg>
+  </div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <img class="brand-mark" src="icons/icon.svg" alt="">
+        <strong>Budget Tracker</strong>
+      </div>
+      <nav id="side-menu" class="cli-nav" aria-label="Main"></nav>
+      <div class="page-turn menu-turn" id="menu-turn"></div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <div class="brand">
+          <img class="brand-mark" src="icons/icon.svg" alt="">
+          <strong>Budget Tracker</strong>
+        </div>
+        <p id="save-state" class="save-state"></p>
+        <button type="button" id="settings-link" class="btn btn-ghost hide-btn no-print" data-action="nav" data-page="settings">Settings</button>
+        <button type="button" id="hide-amounts" class="btn btn-ghost hide-btn no-print" data-action="toggle-hide">Hide amounts</button>
+      </header>
+      <main id="app" tabindex="-1">
+        <p>Opening your records…</p>
+      </main>
+    </div>
+  </div>
+  <div class="page-turn dock-turn no-print" id="dock-turn"></div>
+  <nav class="tabbar" aria-label="Main">
+    <button type="button" id="menu-tab" data-action="nav" data-page="menu">Menu</button>
+  </nav>
+  <button type="button" id="ask-guide" class="ask-fab no-print"><img src="img/mr-serieux.jpg" alt=""><span>Ask Mr Sérieux</span></button>
+  <section id="guide" class="guide no-print" hidden>
+    <div class="guide-card" role="dialog" aria-labelledby="guide-title">
+      <header class="guide-head">
+        <img class="guide-face" src="img/mr-serieux.jpg" alt="">
+        <div>
+          <h2 id="guide-title">Ask Mr Sérieux</h2>
+          <p id="guide-hint"></p>
+        </div>
+        <button type="button" id="guide-close" class="btn btn-ghost">Close</button>
+      </header>
+      <div id="guide-log" class="guide-log"></div>
+      <div id="guide-chips" class="chip-row"></div>
+      <form id="guide-form" class="guide-form">
+        <input id="guide-input" maxlength="240" autocomplete="off">
+        <button type="button" id="guide-mic" class="btn btn-ghost" aria-pressed="false">Speak</button>
+        <button type="button" id="guide-hear" class="btn btn-ghost" aria-pressed="true">Voice on</button>
+        <button type="submit" id="guide-send" class="btn btn-primary">Send</button>
+      </form>
+    </div>
+  </section>
+  <div id="modal-root"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <section id="print-sheet" hidden></section>
+  <script src="js/logic.js"></script>
+  <script src="js/store.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/i18n-world.js"></script>
+  <script src="js/i18n-world-b.js"></script>
+  <script src="js/i18n-world-c.js"></script>
+  <script src="js/guide.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>

@@ -13,6 +13,8 @@ expenses and monitoring progress towards savings goals. Built for the
 
 Requirements: Python 3.8+ (standard library only, no external packages).
 
+The command-line program:
+
 ```bash
 python main.py
 ```
@@ -21,11 +23,51 @@ On first run, the app creates `data/budget_data.json` automatically. A
 sample dataset is already included so you can explore the reports
 immediately.
 
+The same records open in **Budget Tracker**, a browser application for
+Android, iPhone, Linux, Windows, and Mac. No app-store install and no
+extra packages are required.
+
+```bash
+python serve.py
+```
+
+Then open the address it prints (normally `http://127.0.0.1:8765`).
+
+Anyone can also open the free public link, with no install and no payment:
+
+https://serieux-1.github.io/Personal-Budget-Savings-Goal-Tracker/
+
+Each person's records stay in that person's browser. The link does not mix everyone's money into one book, and it does not connect to a bank.
+
+To use a phone on the same Wi-Fi:
+
+```bash
+python serve.py --share
+```
+
+On the phone, open that address in the browser and choose **Add to Home
+Screen** (Android) or **Share → Add to Home Screen** (iPhone). In
+Chrome, Edge, or Safari on a computer, **Install** opens it in its own
+window. After the pages have loaded once, they open again without a connection.
+
+The first screen asks for language, text size, and the money you actually
+received. An example book is available from that screen and from Settings,
+when you only want to look around. Home opens with Today: money in and money
+out, then one sentence about the week. Amounts can be hidden, and a 4-number
+lock stays on the phone. Records stay in `data/budget_data.json` while
+`serve.py` is running, which is the same file `main.py` uses. Export a copy
+from Settings if you want to move them to another device.
+
+The home screen answers three questions: where the money comes from,
+where it goes, and how close each goal is. Reports cover a day, a week
+(Monday to Sunday), a month, spending by category, and SMART goal pace.
+
 ## Project Structure
 
 ```
 budget_tracker/
 ├── main.py                     # Menu loop and user interaction (entry point)
+├── serve.py                    # Opens the browser application on this computer
 ├── validation.py                # Input checks and sanitisation helpers
 ├── storage.py                   # Load/save JSON using the standard library
 ├── transactions.py              # CRUD for transaction records only
@@ -36,6 +78,7 @@ budget_tracker/
 ├── docs/
 │   ├── requirements_note.md       # Problem statement, GCGO link, requirements
 │   └── sources_ai_disclosure.md   # AI usage and source disclosure
+├── web/                         # Budget Tracker pages (phone and computer)
 └── README.md
 ```
 
@@ -132,4 +175,4 @@ Global Challenge (GCGO) justification. In short:
 
 - No database — uses JSON file storage as required at this stage
 - No OOP/classes — deliberately procedural, matching current module scope
-- No GUI/web interface — command-line only
+- The original program is still the command-line menu. `serve.py` adds a browser application in `web/` for phones and computers

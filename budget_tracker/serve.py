@@ -1,0 +1,172 @@
+#!/usr/bin/env python3
+"""
+serve.py
+--------
+Open Budget Tracker in a browser.
+
+The pages live in web/. The records are the same data/budget_data.json
+file used by the command-line program (main.py). No extra packages are
+required.
+
+    python serve.py
+    python serve.py --share
+"""
+
+import argparse
+import json
+import mimetypes
+import os
+import socket
+import sys
+import threading
+import webbrowser
+
+mimetypes.add_type("application/manifest+json", ".webmanifest")
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("image/svg+xml", ".svg")
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ROOT)
+
+from storage import load_data, save_data  # noqa: E402
+
+WEB_DIR = os.path.join(ROOT, "web")
+DEFAULT_DATA = os.path.join(ROOT, "data", "budget_data.json")
+MAX_BODY = 5 * 1024 * 1024
+
+DATA_FILE = DEFAULT_DATA
+
+
+def lan_ip():
+    """Best-effort address a phone on the same network can use."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        sock.connect(("8.8.8.8", 80))
+        return sock.getsockname()[0]
+    except OSError:
+        return None
+    finally:
+        sock.close()
+
+
+def valid_payload(data):
+    return (
+        isinstance(data, dict)
+        and isinstance(data.get("transactions"), list)
+        and isinstance(data.get("goals"), list)
+    )
+
+
+class BudgetHandler(SimpleHTTPRequestHandler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, directory=WEB_DIR, **kwargs)
+
+    def _route(self):
+        return urlparse(self.path).path.rstrip("/") or "/"
+
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        super().end_headers()
+
+    def do_GET(self):
+        if self._route() == "/api/data":
+            self._send_json(200, load_data(DATA_FILE))
+            return
+        super().do_GET()
+
+    def do_PUT(self):
+        if self._route() != "/api/data":
+            self.send_error(404)
+            return
+        self._save_body()
+
+    def _save_body(self):
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            self._send_json(400, {"ok": False, "error": "Missing length"})
+            return
+        if length < 0 or length > MAX_BODY:
+            self._send_json(413, {"ok": False, "error": "Record file is too large"})
+            return
+        raw = self.rfile.read(length)
+        try:
+            data = json.loads(raw.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError):
+            self._send_json(400, {"ok": False, "error": "Records must be JSON"})
+            return
+        if not valid_payload(data):
+            self._send_json(400, {"ok": False, "error": "Records are missing transactions or goals"})
+            return
+        if not save_data(data, DATA_FILE):
+            self._send_json(500, {"ok": False, "error": "Could not write the record file"})
+            return
+        self._send_json(200, {"ok": True})
+
+    def _send_json(self, code, payload):
+        body = json.dumps(payload).encode("utf-8")
+        self.send_response(code)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, fmt, *args):
+        sys.stderr.write("[Budget Tracker] " + (fmt % args) + "\n")
+
+
+def main():
+    global DATA_FILE
+
+    parser = argparse.ArgumentParser(description="Open Budget Tracker in a browser.")
+    parser.add_argument("--port", type=int, default=8765, help="Port to listen on (default 8765)")
+    parser.add_argument("--share", action="store_true", help="Also allow phones on the same Wi-Fi")
+    parser.add_argument("--no-browser", action="store_true", help="Do not open a browser window")
+    parser.add_argument("--data", default=DEFAULT_DATA, help="Path to the JSON record file")
+    args = parser.parse_args()
+
+    DATA_FILE = os.path.abspath(args.data)
+    host = "0.0.0.0" if args.share else "127.0.0.1"
+    local_url = "http://127.0.0.1:%s" % args.port
+
+    class Server(ThreadingHTTPServer):
+        allow_reuse_address = True
+
+    try:
+        httpd = Server((host, args.port), BudgetHandler)
+    except OSError as exc:
+        print("Could not start Budget Tracker on port %s (%s)." % (args.port, exc))
+        print("Try another port: python serve.py --port 8766")
+        return 1
+
+    print("")
+    print("Budget Tracker")
+    print("Open this address on this computer:")
+    print("  " + local_url)
+    if args.share:
+        ip = lan_ip()
+        if ip:
+            print("On a phone connected to the same Wi-Fi, open:")
+            print("  http://%s:%s" % (ip, args.port))
+        print("In the phone browser, choose Add to Home Screen.")
+    print("The command-line program (python main.py) uses the same records.")
+    print("Stop this window with Ctrl+C when you are finished.")
+    print("")
+
+    if not args.no_browser:
+        threading.Thread(target=lambda: webbrowser.open(local_url), daemon=True).start()
+
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nBudget Tracker stopped. Records stay in the data file.")
+    finally:
+        httpd.server_close()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

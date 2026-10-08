@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Budget Tracker">
+  <rect width="64" height="64" rx="12" fill="#143128"/>
+  <circle cx="48" cy="16" r="4.2" fill="#c98412"/>
+  <g fill="none" stroke="#c98412" stroke-width="1.6" stroke-linecap="round">
+    <path d="M48 7.2v2.2M48 22.6v2.2M39.2 16h2.2M54.6 16h2.2"/>
+  </g>
+  <rect x="16" y="38" width="6" height="12" rx="1" fill="#f3f1ec"/>
+  <rect x="26" y="32" width="6" height="18" rx="1" fill="#f3f1ec"/>
+  <rect x="36" y="26" width="6" height="24" rx="1" fill="#f3f1ec"/>
+</svg>

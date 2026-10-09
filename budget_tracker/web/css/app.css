@@ -771,6 +771,18 @@ body.is-locked .topbar { display: none; }
 .entry-steps i.is-on { width: 48px; background: #141821; }
 .entry-stage h1 { font-size: 2rem; max-width: 16ch; }
 .entry-help { color: var(--ink-soft); max-width: 38em; }
+.currency-find { margin-top: 16px; }
+.currency-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 8px 0 6px;
+  max-height: min(42vh, 380px);
+  overflow: auto;
+  padding: 2px;
+}
+.currency-results:empty { display: none; }
+.currency-results .entry-help { margin: 8px 2px 0; }
 .entry-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

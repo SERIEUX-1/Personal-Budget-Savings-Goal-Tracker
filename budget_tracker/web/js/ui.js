@@ -32,11 +32,6 @@
     var catalog = window.BT.categories || {};
     return (type === "income" ? catalog.income : catalog.expense) || [];
   }
-  var CURRENCIES = ["RWF", "USD", "EUR", "KES", "GBP", "TZS", "UGX", "BIF", "ETB", "NGN", "GHS", "ZAR", "XAF", "XOF", "CDF", "INR", "CNY", "JPY", "AED", "CAD"];
-  var CURRENCY_MARK = {
-    USD: "$", EUR: "€", GBP: "£", KES: "KSh", TZS: "TSh", UGX: "USh",
-    NGN: "₦", GHS: "₵", ZAR: "R", INR: "₹", CNY: "¥", JPY: "¥", CAD: "C$"
-  };
   var RATE_CACHE = "bt-rate-cache";
   var LOCK_KEY = "bt-lock";
 
@@ -61,7 +56,9 @@
     converting: false,
     entry: "",
     entryCurrency: "",
-    entryPending: false
+    entryPending: false,
+    currencyQuery: "",
+    languageQuery: ""
   };
 
   function t(key, vars) {
@@ -238,7 +235,7 @@
     var lang = (state.data && state.data.language) || localStorage.getItem("bt-lang") || "en";
     var size = (state.data && state.data.text_size) || localStorage.getItem("bt-text") || "normal";
     window.BT.i18n.set(lang);
-    document.documentElement.lang = lang;
+    document.documentElement.lang = window.BT.speech ? window.BT.speech.tag(window.BT.i18n.current()) : lang;
     document.documentElement.dir = window.BT.i18n.dir();
     document.body.classList.remove("text-large", "text-larger");
     if (size === "large" || size === "larger") document.body.classList.add("text-" + size);
@@ -290,6 +287,10 @@
     if (!state.setup && !state.locked && state.page === "add" && document.getElementById("tx-form")) prepareTxForm(null);
     if (!state.setup && !state.locked && state.page === "add-goal" && document.getElementById("goal-form")) prepareGoalForm(null);
     setNav();
+    if (state.entry === "money" || state.entry === "lang") {
+      var search = document.getElementById(state.entry === "money" ? "currency-search" : "language-search");
+      if (search) search.focus();
+    }
   }
 
   function go(page) {
@@ -915,9 +916,6 @@ function chip(action, value, label, active) {
     var second = state.data.second_currency || "";
     var lang = state.data.language || "en";
     var size = state.data.text_size || "normal";
-    var chips = CURRENCIES.map(function (code) {
-      return chip("set-currency", code, code, currency);
-    }).join("");
     var last = state.data.exchange;
     var lastLine = last
       ? '<p class="trust">' + esc(t("rate-last", {
@@ -927,20 +925,16 @@ function chip(action, value, label, active) {
         rate: formatQuote(last.rate)
       })) + "</p>"
       : "";
-    var langs = window.BT.i18n.languages.map(function (item) {
-      return chip("set-language", item.code, item.name, lang);
-    }).join("");
     var sizes = chip("set-size", "normal", t("size-normal"), size) +
       chip("set-size", "large", t("size-large"), size) +
       chip("set-size", "larger", t("size-larger"), size);
     var locked = !!localStorage.getItem(LOCK_KEY);
     return "<h1>" + esc(t("settings")) + "</h1>" +
-      '<section class="block"><h2>' + esc(t("language")) + '</h2><div class="chip-row">' + langs + "</div></section>" +
+      '<section class="block"><h2>' + esc(t("language")) + "</h2>" + languageSearchBox(lang) + "</section>" +
       '<section class="block"><h2>' + esc(t("text-size")) + '</h2><div class="chip-row">' + sizes + "</div></section>" +
       '<section class="block"><h2>' + esc(t("currency")) + '</h2><p class="lede">' + esc(t("currency-help")) + "</p>" +
       lastLine +
-      '<div class="chip-row">' + chips + "</div>" +
-      '<label class="field">' + esc(t("currency")) + '<input id="currency" value="' + esc(currency) + '" maxlength="3" autocapitalize="characters"></label>' +
+      currencySearchBox("set-currency", currency) +
       '<label class="field">' + esc(t("rate-day")) + '<input id="rate-day" type="date" value="' + esc(state.rateDay || "") + '"></label>' +
       '<p class="note note-plain">' + esc(t("rate-day-help")) + "</p></section>" +
       '<section class="block"><h2>' + esc(t("second-title")) + '</h2><p>' + esc(t("second-help")) + "</p>" +
@@ -1286,14 +1280,20 @@ function chip(action, value, label, active) {
       render();
       return;
     }
-    if (action === "set-language") { chooseLanguage(btn.dataset.value); return; }
+    if (action === "set-language") {
+      state.languageQuery = "";
+      chooseLanguage(btn.dataset.value);
+      return;
+    }
     if (action === "pick-entry-currency") {
       state.entryCurrency = btn.dataset.value;
+      state.currencyQuery = "";
       render();
       return;
     }
     if (action === "entry-back") {
       state.entry = "lang";
+      state.currencyQuery = "";
       render();
       return;
     }
@@ -1346,7 +1346,11 @@ function chip(action, value, label, active) {
       if (input) { input.value = btn.dataset.value; input.focus(); }
       return;
     }
-    if (action === "set-currency") { changeCurrency(btn.dataset.value); return; }
+    if (action === "set-currency") {
+      state.currencyQuery = "";
+      changeCurrency(btn.dataset.value);
+      return;
+    }
     if (action === "export") { exportData(); return; }
     if (action === "pick-import") {
       var picker = document.getElementById("import-file");
@@ -1372,7 +1376,6 @@ function chip(action, value, label, active) {
     if (id === "tx-end") { state.txFilter.end = e.target.value; render(); return; }
     if (id === "goal-category-filter") { state.goalFilter.category = e.target.value; render(); return; }
     if (id === "day-lookup") { state.report.day = e.target.value; render(); return; }
-    if (id === "currency") { changeCurrency(e.target.value); return; }
     if (id === "rate-day") { state.rateDay = e.target.value; return; }
     if (id === "second-currency") {
       state.data.second_currency = e.target.value.trim();
@@ -1411,6 +1414,16 @@ function chip(action, value, label, active) {
       state.goalFilter.query = e.target.value;
       var box = document.getElementById("goal-list");
       if (box) box.innerHTML = goalListHtml("search");
+    }
+    if (e.target.id === "language-search") {
+      state.languageQuery = e.target.value;
+      var langBox = document.getElementById("language-results");
+      if (langBox) langBox.innerHTML = languageResultHtml(state.languageQuery, languageSearchSelected());
+    }
+    if (e.target.id === "currency-search") {
+      state.currencyQuery = e.target.value;
+      var results = document.getElementById("currency-results");
+      if (results) results.innerHTML = currencyResultHtml(state.currencyQuery, currencySearchSelected(), currencySearchAction());
     }
   });
 
@@ -1545,22 +1558,14 @@ function chip(action, value, label, active) {
 
   function speak(text) {
     if (!window.speechSynthesis) { toast(t("no-speech")); return; }
-    window.speechSynthesis.cancel();
-    var utter = new SpeechSynthesisUtterance(text);
-    utter.lang = window.BT.i18n.current();
-    var voices = window.speechSynthesis.getVoices() || [];
-    var match = voices.filter(function (voice) {
-      return voice.lang.toLowerCase().indexOf(utter.lang) === 0;
-    })[0];
-    if (match) utter.voice = match;
-    window.speechSynthesis.speak(utter);
+    if (window.BT.speech) window.BT.speech.say(text, window.BT.i18n.current());
   }
 
   function dictate(inputId) {
     var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Rec) { toast(t("no-mic")); return; }
     var rec = new Rec();
-    rec.lang = window.BT.i18n.current();
+    rec.lang = window.BT.speech ? window.BT.speech.tag(window.BT.i18n.current()) : window.BT.i18n.current();
     rec.onresult = function (event) {
       var heard = event.results[0][0].transcript;
       var input = document.getElementById(inputId);
@@ -1819,22 +1824,16 @@ function chip(action, value, label, active) {
     var draft = state.setupDraft;
     var progress = '<p class="eyebrow">' + (step + 1) + " / 4</p>";
     if (step === 0) {
-      var langs = window.BT.i18n.languages.map(function (item) {
-        return chip("set-language", item.code, item.name, state.data.language || "en");
-      }).join("");
       var size = state.data.text_size || "normal";
-      var currency = state.data.currency || "";
-      var chips = CURRENCIES.map(function (code) {
-        return chip("set-currency", code, code, canonicalCurrency(currency));
-      }).join("");
+      var currency = canonicalCurrency(state.data.currency || "");
       return '<section class="setup-card">' + progress + "<h1>" + esc(t("setup-hello")) + '</h1><p class="lede">' + esc(t("setup-lead")) +
         '</p><p class="trust">' + esc(t("trust")) + "</p>" +
-        "<h2>" + esc(t("choose-language")) + '</h2><div class="chip-row">' + langs + "</div>" +
+        "<h2>" + esc(t("choose-language")) + "</h2>" + languageSearchBox(state.data.language || "en") +
         "<h2>" + esc(t("choose-size")) + '</h2><div class="chip-row">' +
         chip("set-size", "normal", t("size-normal"), size) +
         chip("set-size", "large", t("size-large"), size) +
         chip("set-size", "larger", t("size-larger"), size) + "</div>" +
-        "<h2>" + esc(t("choose-currency")) + '</h2><div class="chip-row">' + chips + "</div>" +
+        "<h2>" + esc(t("choose-currency")) + "</h2>" + currencySearchBox("set-currency", currency) +
         '<div class="form-actions"><button type="button" class="btn btn-secondary" data-action="look-example">' + esc(t("look-example")) + "</button></div>" +
         setupNav(step) + "</section>";
     }
@@ -2188,25 +2187,137 @@ function chip(action, value, label, active) {
       '</button><button type="button" class="btn btn-secondary" data-action="nav" data-page="month">' + esc(t("open-reports")) + "</button></div>");
   }
 
+  function foldText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  function currencyByCode(code) {
+    code = canonicalCurrency(code);
+    var list = window.BT.currencies || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].code === code) return list[i];
+    }
+    return null;
+  }
+
+  function shownCountry(item, query) {
+    var q = foldText(query);
+    var extras = item.also || [];
+    var i;
+    if (q) {
+      for (i = 0; i < extras.length; i++) {
+        if (foldText(extras[i]) === q) return extras[i];
+      }
+      for (i = 0; i < extras.length; i++) {
+        if (foldText(extras[i]).indexOf(q) !== -1 && extras[i].length > 3) return extras[i];
+      }
+    }
+    return item.country;
+  }
+
+  function searchCurrencies(query) {
+    var q = foldText(query);
+    if (!q) return [];
+    var hits = [];
+    (window.BT.currencies || []).forEach(function (item) {
+      var code = foldText(item.code);
+      var name = foldText(item.name);
+      var country = foldText(item.country);
+      var extras = (item.also || []).map(foldText);
+      var score = 0;
+      var i;
+      if (code === q) score = 100;
+      else if (code.indexOf(q) === 0) score = 80;
+      else if (country === q || extras.indexOf(q) !== -1) score = 70;
+      else if (country.indexOf(q) === 0) score = 60;
+      else if (name.indexOf(q) === 0) score = 50;
+      else if (code.indexOf(q) !== -1 || name.indexOf(q) !== -1 || country.indexOf(q) !== -1) score = 30;
+      else {
+        for (i = 0; i < extras.length; i++) {
+          if (extras[i].indexOf(q) === 0) { score = 60; break; }
+          if (extras[i].indexOf(q) !== -1) { score = 30; break; }
+        }
+      }
+      if (score) hits.push({ item: item, score: score });
+    });
+    hits.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      return a.item.code < b.item.code ? -1 : 1;
+    });
+    return hits.slice(0, 12).map(function (row) { return row.item; });
+  }
+
+  function currencySearchAction() {
+    return state.entry === "money" ? "pick-entry-currency" : "set-currency";
+  }
+
+  function currencySearchSelected() {
+    if (state.entry === "money") return canonicalCurrency(state.entryCurrency || "");
+    return canonicalCurrency((state.data && state.data.currency) || "");
+  }
+
+  function currencyCard(item, selected, action, query) {
+    var on = item.code === selected;
+    return '<button type="button" class="entry-pick' + (on ? " is-on" : "") + '" data-action="' + action + '" data-value="' + esc(item.code) + '" aria-pressed="' + (on ? "true" : "false") + '"><strong>' + esc(shownCountry(item, query)) + "</strong><span>" + esc(item.code) + " · " + esc(item.name) + "</span></button>";
+  }
+
+  function currencyResultHtml(query, selected, action) {
+    var text = String(query || "").trim();
+    if (!text) {
+      var current = currencyByCode(selected);
+      return current ? currencyCard(current, selected, action, "") : "";
+    }
+    var hits = searchCurrencies(text);
+    if (!hits.length) return '<p class="entry-help">' + esc(t("currency-none")) + "</p>";
+    return hits.map(function (item) { return currencyCard(item, selected, action, text); }).join("");
+  }
+
+  function languageSearchSelected() {
+    return (state.data && state.data.language) || "en";
+  }
+
+  function languageCard(item, selected, query) {
+    var on = item.code === selected;
+    var catalog = window.BT.languages;
+    var where = catalog.place(item, query);
+    return '<button type="button" class="entry-pick' + (on ? " is-on" : "") + '" data-action="set-language" data-value="' + esc(item.code) + '" aria-pressed="' + (on ? "true" : "false") + '"><strong>' + esc(where) + "</strong><span>" + esc(item.name) + "</span></button>";
+  }
+
+  function languageResultHtml(query, selected) {
+    var catalog = window.BT.languages;
+    var text = String(query || "").trim();
+    if (!text) {
+      var current = catalog.find(selected) || catalog.find("en");
+      return current ? languageCard(current, selected, "") : "";
+    }
+    var hits = catalog.search(text);
+    if (!hits.length) return '<p class="entry-help">' + esc(t("language-none")) + "</p>";
+    return hits.map(function (item) { return languageCard(item, selected, text); }).join("");
+  }
+
+  function languageSearchBox(selected) {
+    return '<label class="field currency-find"><input id="language-search" value="' + esc(state.languageQuery || "") + '" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + esc(t("language-find")) + '"></label>' +
+      '<div id="language-results" class="currency-results">' + languageResultHtml(state.languageQuery, selected) + "</div>";
+  }
+
+  function currencySearchBox(action, selected) {
+    return '<label class="field currency-find"><input id="currency-search" value="' + esc(state.currencyQuery || "") + '" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="' + esc(t("currency-find")) + '"></label>' +
+      '<div id="currency-results" class="currency-results">' + currencyResultHtml(state.currencyQuery, selected, action) + "</div>";
+  }
+
   function renderEntry() {
     var moneyStep = state.entry === "money";
     var title = moneyStep ? t("entry-money") : t("entry-lang");
     var help = moneyStep ? t("entry-money-help") : t("entry-lang-help");
     var body;
     if (!moneyStep) {
-      var lang = (state.data && state.data.language) || "en";
-      body = '<div class="entry-grid">' + window.BT.i18n.languages.map(function (item) {
-        var on = item.code === lang;
-        return '<button type="button" class="entry-pick' + (on ? " is-on" : "") + '" data-action="set-language" data-value="' + esc(item.code) + '" aria-pressed="' + (on ? "true" : "false") + '"><strong>' + esc(item.name) + "</strong></button>";
-      }).join("") + "</div>";
+      body = languageSearchBox(languageSearchSelected());
     } else {
-      var selected = canonicalCurrency(state.entryCurrency || "");
-      body = '<div class="entry-grid">' + CURRENCIES.map(function (code) {
-        var on = code === selected;
-        var mark = CURRENCY_MARK[code] || code;
-        var sub = mark === code ? "" : '<span>' + code + "</span>";
-        return '<button type="button" class="entry-pick' + (on ? " is-on" : "") + '" data-action="pick-entry-currency" data-value="' + code + '" aria-pressed="' + (on ? "true" : "false") + '"><strong>' + esc(mark) + "</strong>" + sub + "</button>";
-      }).join("") + "</div>";
+      body = currencySearchBox("pick-entry-currency", canonicalCurrency(state.entryCurrency || ""));
     }
     var steps = '<p class="entry-steps" aria-hidden="true"><i class="' + (moneyStep ? "" : "is-on") + '"></i><i class="' + (moneyStep ? "is-on" : "") + '"></i></p>';
     var prev = moneyStep
@@ -2223,6 +2334,8 @@ function chip(action, value, label, active) {
       return;
     }
     state.entry = "lang";
+    state.languageQuery = "";
+    state.currencyQuery = "";
     state.entryCurrency = canonicalCurrency((state.data && state.data.currency) || "");
     state.page = "menu";
     render();

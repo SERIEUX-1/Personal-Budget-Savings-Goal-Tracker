@@ -2,7 +2,7 @@
  * The app shell is stored on the phone so Budget Tracker opens with no internet.
  * Records are not cached here; they stay in the JSON file or in the browser.
  */
-var CACHE = "budget-tracker-v27";
+var CACHE = "budget-tracker-v31";
 var ASSETS = [
   "./",
   "./index.html",
@@ -13,7 +13,10 @@ var ASSETS = [
   "./js/i18n-world.js",
   "./js/i18n-world-b.js",
   "./js/i18n-world-c.js",
+  "./js/languages.js",
   "./js/guide.js",
+  "./js/guide-world.js",
+  "./js/currencies.js",
   "./js/ui.js",
   "./manifest.webmanifest",
   "./img/mr-serieux.jpg",
@@ -36,8 +39,15 @@ self.addEventListener("activate", function (event) {
     }).map(function (key) {
       return caches.delete(key);
     }));
+  }).then(function () {
+    return self.clients.claim();
+  }).then(function () {
+    return self.clients.matchAll({ type: "window" });
+  }).then(function (clients) {
+    clients.forEach(function (client) {
+      if (client.navigate) client.navigate(client.url);
+    });
   }));
-  self.clients.claim();
 });
 
 function matchShell(request) {
@@ -54,18 +64,17 @@ self.addEventListener("fetch", function (event) {
   if (url.pathname.indexOf("/api/") !== -1) return;
   if (event.request.method !== "GET") return;
 
-  event.respondWith(matchShell(event.request).then(function (cached) {
-    var refresh = fetch(event.request).then(function (response) {
-      if (response && response.status === 200 && response.type === "basic") {
-        var copy = response.clone();
-        caches.open(CACHE).then(function (cache) {
-          cache.put(event.request, copy);
-        });
-      }
-      return response;
-    }).catch(function () {
+  event.respondWith(fetch(event.request).then(function (response) {
+    if (response && response.status === 200 && response.type === "basic") {
+      var copy = response.clone();
+      caches.open(CACHE).then(function (cache) {
+        cache.put(event.request, copy);
+      });
+    }
+    return response;
+  }).catch(function () {
+    return matchShell(event.request).then(function (cached) {
       return cached || caches.match("./index.html");
     });
-    return cached || refresh;
   }));
 });

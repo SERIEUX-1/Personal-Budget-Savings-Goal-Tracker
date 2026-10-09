@@ -26,12 +26,12 @@
     ar: ["كيف أضيف دخلاً؟", "كيف تعمل الأهداف؟", "هل أستخدمه دون إنترنت؟"]
   };
 
-  function intent(keys, text) {
-    return { keys: keys, text: text };
+  function intent(id, keys, text) {
+    return { id: id, keys: keys, text: text };
   }
 
   var INTENTS = [
-    intent(["hello", "hi", "hey", "help", "siri", "copilot", "guide", "serieux", "mr serieux", "who are you", "your name", "muraho", "bite", "bonjour", "salut", "aide", "habari", "saidia", "hola", "ayuda", "ola", "olá", "ajuda", "مرحبا", "مساعدة", "mfasha"], {
+    intent("hello", ["hello", "hi", "hey", "help", "siri", "copilot", "guide", "serieux", "mr serieux", "who are you", "your name", "muraho", "bite", "bonjour", "salut", "aide", "habari", "saidia", "hola", "ayuda", "ola", "olá", "ajuda", "مرحبا", "مساعدة", "mfasha"], {
       en: "Hello. I am Ask Mr Sérieux, the guide for Budget Tracker. Ask me how to add income or expenses, set a goal, read a report, change the currency, lock a shared phone, or use the app with no internet.",
       rw: "Muraho. Ndi Ask Mr Sérieux, umuyobozi wa Budget Tracker. Mbaza uko wongeraho amafaranga yinjira cyangwa ayasohoka, ukagena intego, usoma raporo, uhindura ifaranga, ufunga telefoni musangiye, cyangwa ukoresha porogaramu nta interineti.",
       fr: "Bonjour. Je suis Ask Mr Sérieux, le guide de Budget Tracker. Demandez-moi comment ajouter un revenu ou une dépense, fixer un objectif, lire un rapport, changer la monnaie, verrouiller un téléphone partagé, ou utiliser l'application sans internet.",
@@ -40,7 +40,7 @@
       pt: "Olá. Sou Ask Mr Sérieux, o guia do Budget Tracker. Pergunte-me como adicionar um rendimento ou uma despesa, definir uma meta, ler um relatório, mudar a moeda, trancar um telemóvel partilhado, ou usar a aplicação sem internet.",
       ar: "مرحباً. أنا Ask Mr Sérieux، دليل Budget Tracker. اسألني كيف تضيف دخلاً أو مصروفاً، أو تضع هدفاً، أو تقرأ تقريراً، أو تغيّر العملة، أو تقفل هاتفاً مشتركاً، أو تستخدم التطبيق دون إنترنت."
     }),
-    intent(["what is this", "what is budget", "this app", "about this", "iki ni iki", "ni nini", "c'est quoi", "quest-ce", "qu'est", "que es", "o que e", "o que é", "iyi porogaramu ni iki", "ما هذا", "ما هو"], {
+    intent("about", ["what is this", "what is budget", "this app", "about this", "iki ni iki", "ni nini", "c'est quoi", "quest-ce", "qu'est", "que es", "o que e", "o que é", "iyi porogaramu ni iki", "ما هذا", "ما هو"], {
       en: "Budget Tracker is a book for your own money. You write income and expenses, set savings goals, and read reports for a day, a month, or a category. The records stay on this phone. It does not connect to a bank, and it does not send your records anywhere.",
       rw: "Budget Tracker ni igitabo cy'amafaranga yawe. Wandika ayinjira n'ayasohoka, ugena intego zo kuzigama, kandi usoma raporo z'umunsi, ukwezi, cyangwa icyiciro. Inyandiko ziguma kuri iyi telefoni. Ntihujwe na banki, kandi ntiyohereza inyandiko zawe ahandi.",
       fr: "Budget Tracker est un cahier pour votre argent. Vous notez les revenus et les dépenses, vous fixez des objectifs d'épargne, et vous lisez des rapports pour un jour, un mois, ou une catégorie. Les notes restent sur ce téléphone. Elles ne vont pas à une banque, et elles ne sont envoyées nulle part.",
@@ -49,7 +49,7 @@
       pt: "Budget Tracker é um caderno para o seu dinheiro. Regista rendimentos e despesas, define metas de poupança, e lê relatórios de um dia, um mês, ou uma categoria. Os registos ficam neste telemóvel. Não liga a um banco e não envia os seus registos para lado nenhum.",
       ar: "Budget Tracker دفتر لأموالك. تكتب الدخل والمصروفات، وتضع أهداف الادخار، وتقرأ تقارير يوم أو شهر أو فئة. السجلات تبقى على هذا الهاتف. لا يتصل ببنك، ولا يرسل سجلاتك إلى أي مكان."
     }),
-    intent(["start", "first time", "begin", "setup", "three questions", "tangira", "gutangira", "commencer", "première", "anza", "kuanza", "empezar", "primera", "começar", "primeira", "البداية", "أول مرة"], {
+    intent("start", ["start", "first time", "begin", "setup", "three questions", "tangira", "gutangira", "commencer", "première", "anza", "kuanza", "empezar", "primera", "começar", "primeira", "البداية", "أول مرة"], {
       en: "The first time, choose a language, a text size, and the name of your money, such as RWF or USD. Then answer three short questions: income you received, expenses you paid, and a goal. Press Look at the example if you want to see a sample life first. When you finish your own start, your answers replace that example.",
       rw: "Ubu bundi, hitamo ururimi, ingano y'inyandiko, n'izina ry'amafaranga yawe, nk'RWF cyangwa USD. Hanyuma subiza ibibazo bitatu bigufi: amafaranga wakiriye, ayo wakoresheje, n'intego. Kanda Reba urugero niba ushaka kubona ubuzima bw'urugero mbere. Nuhaza gutangira kwawe, ibisubizo byawe bisimbura urwo rugero.",
       fr: "La première fois, choisissez une langue, une taille de texte, et le nom de votre argent, comme RWF ou USD. Puis répondez à trois questions courtes : un revenu reçu, une dépense payée, et un objectif. Appuyez sur Voir l'exemple si vous voulez d'abord une vie d'exemple. Quand vous terminez votre propre départ, vos réponses remplacent cet exemple.",
@@ -58,7 +58,7 @@
       pt: "Na primeira vez, escolha uma língua, um tamanho de texto, e o nome do seu dinheiro, como RWF ou USD. Depois responda a três perguntas curtas: um rendimento recebido, uma despesa paga, e uma meta. Prima Ver o exemplo se quiser ver uma vida de exemplo primeiro. Quando terminar o seu próprio início, as suas respostas substituem esse exemplo.",
       ar: "في المرة الأولى، اختر لغة وحجم خط واسم نقودك، مثل RWF أو USD. ثم أجب عن ثلاثة أسئلة قصيرة: دخل استلمته، ومصروف دفعته، وهدف. اضغط انظر إلى المثال إذا أردت أن ترى حياة مثال أولاً. عندما تنهي بدايتك، إجاباتك تحل مكان ذلك المثال."
     }),
-    intent(["menu", "next", "previous", "next page", "urutonde", "ibikurikira", "ibanje", "suivant", "précédent", "menu", "orodha", "ijayo", "nyuma", "menú", "siguiente", "anterior", "próxima", "anterior", "القائمة", "التالي", "السابق"], {
+    intent("menu", ["menu", "next", "previous", "next page", "urutonde", "ibikurikira", "ibanje", "suivant", "précédent", "menu", "orodha", "ijayo", "nyuma", "menú", "siguiente", "anterior", "próxima", "anterior", "القائمة", "التالي", "السابق"], {
       en: "The menu is a numbered list, in the same order as the written program. Press Next to walk from 1 to 15, then Exit. Previous goes back one step. The menu itself has Next, and no Previous. Exit has Previous, and no Next. On a phone, Menu at the bottom returns to the list. Settings is the button at the top. It is not a number on the list.",
       rw: "Urutonde ni imibare, mu buryo bwo muri porogaramu yanditse. Kanda Ibikurikira uva kuri 1 ukageza kuri 15, hanyuma Gusohoka. Ibanje igaruka intambwe imwe. Urutonde ubwarwo rufite Ibikurikira, nta Ibanje. Gusohoka gufite Ibanje, nta Ibikurikira. Kuri telefoni, Urutonde hepfo kugaruza ku rutonde. Igenamiterere ni buto yo hejuru. Si umubare ku rutonde.",
       fr: "Le menu est une liste numérotée, dans le même ordre que le programme écrit. Appuyez sur Suivant pour aller de 1 à 15, puis Quitter. Précédent revient d'un pas. Le menu a Suivant, et pas Précédent. Quitter a Précédent, et pas Suivant. Sur un téléphone, Menu en bas ramène à la liste. Réglages est le bouton en haut. Ce n'est pas un numéro de la liste.",
@@ -67,7 +67,7 @@
       pt: "O menu é uma lista numerada, na mesma ordem do programa escrito. Prima Seguinte para ir do 1 ao 15, e depois Sair. Anterior volta um passo. O menu tem Seguinte, e não tem Anterior. Sair tem Anterior, e não tem Seguinte. Num telemóvel, Menu em baixo volta à lista. Definições é o botão de cima. Não é um número da lista.",
       ar: "القائمة مرقّمة، بالترتيب نفسه للبرنامج المكتوب. اضغط التالي لتمشي من 1 إلى 15، ثم خروج. السابق يرجع خطوة. القائمة نفسها فيها التالي، وليس السابق. الخروج فيه السابق، وليس التالي. على الهاتف، القائمة في الأسفل ترجع إلى اللائحة. الإعدادات زر في الأعلى. ليست رقماً في القائمة."
     }),
-    intent(["add income", "add expense", "add transaction", "add a transaction", "money in", "money out", "ongeraho", "amafaranga yinjira", "ayinjira", "ayasohoka", "ajouter un revenu", "ajouter une dépense", "ajouter une transaction", "ongeza kipato", "ongeza matumizi", "agregar ingreso", "agregar gasto", "adicionar rendimento", "adicionar despesa", "أضف دخلا", "أضف مصروفا", "أضف معاملة"], {
+    intent("add", ["add income", "add expense", "add transaction", "add a transaction", "money in", "money out", "ongeraho", "amafaranga yinjira", "ayinjira", "ayasohoka", "ajouter un revenu", "ajouter une dépense", "ajouter une transaction", "ongeza kipato", "ongeza matumizi", "agregar ingreso", "agregar gasto", "adicionar rendimento", "adicionar despesa", "أضف دخلا", "أضف مصروفا", "أضف معاملة"], {
       en: "Open 1, Add transaction. Choose Income (money in) or Expenses (money out). Choose what it was for from the long list, such as salary, a gift, a donation, food and beverages, clothes, or school fees. If it is not there, choose Add a new category, type the name, and press Save. That name is kept for next time. Then type the amount and the date, and press Save.",
       rw: "Fungura 1, Ongeraho igikorwa. Hitamo Ayinjira cyangwa Ayasohoka. Hitamo icyo byari mu rutonde rurerure. Niba kitariho, hitamo Ongeraho izina, wandike izina, ukande Bika. Iryo zina riragumaho. Andika umubare n'itariki, ukande Bika.",
       fr: "Ouvrez 1, Ajouter une transaction. Choisissez Revenu ou Dépense. Choisissez à quoi cela correspond dans la longue liste. Si ce n'est pas là, choisissez Ajouter un nom, écrivez le nom, et Enregistrer. Ce nom est gardé. Puis tapez le montant et la date, et Enregistrer.",
@@ -76,7 +76,7 @@
       pt: "Abra 1, Adicionar transação. Escolha Rendimento ou Despesa. Escolha para que foi na lista longa. Se não estiver lá, escolha Acrescentar um nome, escreva o nome, e Guardar. Esse nome fica guardado. Depois escreva o valor e a data, e Guardar.",
       ar: "افتح 1، أضف معاملة. اختر الدخل أو المصروف. اختر الغرض من القائمة الطويلة. إن لم يكن موجوداً، اختر أضف اسماً، واكتب الاسم، ثم احفظ. يبقى هذا الاسم. ثم اكتب المبلغ والتاريخ، واحفظ."
     }),
-    intent(["income", "expense", "expenses", "money in", "money out", "revenu", "dépense", "kipato", "matumizi", "ingreso", "gasto", "rendimento", "despesa", "دخل", "مصروف", "yinjira", "yasohoka"], {
+    intent("income", ["income", "expense", "expenses", "money in", "money out", "revenu", "dépense", "kipato", "matumizi", "ingreso", "gasto", "rendimento", "despesa", "دخل", "مصروف", "yinjira", "yasohoka"], {
       en: "Income is money that comes to you: pay, sales, a gift, or money sent to you. Expenses are what you spend. The words in brackets, money in and money out, mean the same thing. Buttons say Add income and Add expenses.",
       rw: "Ayinjira ni amafaranga agushyikira: umushahara, ibicuruzwa, impano, cyangwa amafaranga woherejwe. Ayasohoka ni ayo ukoresha. Amagambo mu rubaba, money in na money out, asobanura kimwe. Amabuto avuga Ongeraho ayinjira n'Ongeraho ayasohoka.",
       fr: "Le revenu est l'argent qui vous arrive : paie, ventes, un cadeau, ou de l'argent envoyé. Les dépenses sont ce que vous payez. Les mots entre parenthèses, argent qui entre et argent qui sort, veulent dire la même chose.",
@@ -85,7 +85,7 @@
       pt: "O rendimento é dinheiro que lhe chega: pagamento, vendas, um presente, ou dinheiro enviado. As despesas são o que gasta. As palavras entre parênteses querem dizer o mesmo.",
       ar: "الدخل هو المال الذي يصلك: أجر، أو مبيعات، أو هدية، أو مال أُرسل إليك. المصروفات هي ما تنفقه. الكلمات بين القوسين تعني الشيء نفسه."
     }),
-    intent(["update a transaction", "edit a transaction", "delete a transaction", "change a transaction", "remove a transaction", "hindura igikorwa", "siba igikorwa", "modifier une transaction", "supprimer une transaction", "hariri muamala", "futa muamala", "editar transacción", "borrar transacción", "editar transação", "apagar transação", "عدّل معاملة", "احذف معاملة"], {
+    intent("edit-tx", ["update a transaction", "edit a transaction", "delete a transaction", "change a transaction", "remove a transaction", "hindura igikorwa", "siba igikorwa", "modifier une transaction", "supprimer une transaction", "hariri muamala", "futa muamala", "editar transacción", "borrar transacción", "editar transação", "apagar transação", "عدّل معاملة", "احذف معاملة"], {
       en: "To change a transaction, open 3, Update a transaction. Press Edit, change the fields, and Save. To remove one, open 4, Delete a transaction. Press Delete, then confirm. Keep it leaves the record where it is. Next moves you to the following step.",
       rw: "Guhindura igikorwa, fungura 3, Hindura igikorwa. Kanda Hindura, uhindure ibisabwa, ukande Bika. Kugisiba, fungura 4, Siba igikorwa. Kanda Siba, hanyuma wemeze. Kigume gisiga inyandiko aho iri. Ibikurikira bigutwara ku ntambwe ikurikira.",
       fr: "Pour changer une transaction, ouvrez 3, Modifier une transaction. Appuyez sur Modifier, changez les champs, et Enregistrer. Pour en retirer une, ouvrez 4, Supprimer une transaction. Appuyez sur Supprimer, puis confirmez. Garder laisse la note en place.",
@@ -94,7 +94,7 @@
       pt: "Para mudar uma transação, abra 3, Atualizar uma transação. Prima Editar, mude os campos, e Guardar. Para tirar uma, abra 4, Apagar uma transação. Prima Apagar, e confirme. Manter deixa o registo no lugar.",
       ar: "لتغيير معاملة، افتح 3، حدّث معاملة. اضغط تعديل، غيّر الحقول، ثم احفظ. لحذف واحدة، افتح 4، احذف معاملة. اضغط حذف، ثم أكّد. الإبقاء يترك السجل في مكانه."
     }),
-    intent(["search", "filter", "find a transaction", "shakisha", "filtre", "rechercher", "tafuta", "buscar", "filtrar", "pesquisar", "بحث", "تصفية"], {
+    intent("search", ["search", "filter", "find a transaction", "shakisha", "filtre", "rechercher", "tafuta", "buscar", "filtrar", "pesquisar", "بحث", "تصفية"], {
       en: "Open 5, Search / filter transactions. Type words, choose income or expenses, choose a category, and set a from date and a to date. The list updates as you type. For goals, open 14, Search / filter goals by category.",
       rw: "Fungura 5, Shakisha cyangwa yungurura ibikorwa. Andika amagambo, hitamo ayinjira cyangwa ayasohoka, hitamo icyiciro, ushyireho itariki yo gutangira n'iyo kurangiza. Urutonde ruhinduka uko wandika. Ku ntego, fungura 14, Shakisha intego ukurikije icyiciro.",
       fr: "Ouvrez 5, Rechercher / filtrer les transactions. Tapez des mots, choisissez revenu ou dépense, une catégorie, et une date de début et de fin. La liste se met à jour pendant que vous tapez. Pour les objectifs, ouvrez 14.",
@@ -103,7 +103,7 @@
       pt: "Abra 5, Pesquisar / filtrar transações. Escreva palavras, escolha rendimento ou despesa, uma categoria, e uma data de início e de fim. A lista muda enquanto escreve. Para as metas, abra 14.",
       ar: "افتح 5، ابحث في المعاملات أو صفّها. اكتب كلمات، واختر الدخل أو المصروف، والفئة، وتاريخ البداية والنهاية. القائمة تتغير وأنت تكتب. للأهداف، افتح 14."
     }),
-    intent(["report", "monthly", "daily", "category breakdown", "specific day", "raporo", "ukwezi", "umunsi", "rapport", "mensuel", "quotidien", "ripoti", "mwezi", "siku", "informe", "mensual", "diario", "relatório", "mensal", "تقرير", "شهري", "يومي"], {
+    intent("report", ["report", "monthly", "daily", "category breakdown", "specific day", "raporo", "ukwezi", "umunsi", "rapport", "mensuel", "quotidien", "ripoti", "mwezi", "siku", "informe", "mensual", "diario", "relatório", "mensal", "تقرير", "شهري", "يومي"], {
       en: "6 is the monthly summary. 7 lists every day, with older days behind Show older. 8 opens one date you choose. 9 shows where the expenses went. 15 is the savings progress report. On a report, One page builds a short summary, and Print this report prints it. The menu and this guide stay off the printed page.",
       rw: "6 ni raporo y'ukwezi. 7 irondora buri munsi, n'iminsi ya kera inyuma ya Erekana iya kera. 8 ifungura itariki uhisemo. 9 yerekana aho ayasohoka ajya. 15 ni raporo y'iterambere ry'intego. Kuri raporo, Ipaji imwe igira incamake, na Print iyicapa. Urutonde n'uyu muyobozi ntibigera ku rupapuro rucapwe.",
       fr: "6 est le résumé du mois. 7 liste chaque jour. 8 ouvre une date que vous choisissez. 9 montre où vont les dépenses. 15 est le rapport d'avancement de l'épargne. Sur un rapport, Une page fait un court résumé, et Imprimer l'imprime. Le menu et ce guide ne sont pas sur la page imprimée.",
@@ -112,7 +112,7 @@
       pt: "6 é o resumo do mês. 7 lista cada dia. 8 abre uma data que escolhe. 9 mostra para onde foram as despesas. 15 é o relatório do progresso da poupança. Num relatório, Uma página faz um resumo curto, e Imprimir imprime-o. O menu e este guia não saem na página impressa.",
       ar: "6 هو ملخص الشهر. 7 يعرض كل يوم. 8 يفتح تاريخاً تختاره. 9 يبيّن أين ذهبت المصروفات. 15 هو تقرير تقدّم الادخار. في التقرير، صفحة واحدة تصنع ملخصاً قصيراً، وطباعة تطبعه. القائمة وهذا الدليل لا يظهران في الصفحة المطبوعة."
     }),
-    intent(["delete a goal", "delete a savings goal", "delete goal", "remove a goal", "siba intego", "supprimer un objectif", "supprimer l'objectif", "futa lengo", "borrar una meta", "borrar la meta", "apagar uma meta", "apagar a meta", "احذف هدفا", "احذف هدف"], {
+    intent("delete-goal", ["delete a goal", "delete a savings goal", "delete goal", "remove a goal", "siba intego", "supprimer un objectif", "supprimer l'objectif", "futa lengo", "borrar una meta", "borrar la meta", "apagar uma meta", "apagar a meta", "احذف هدفا", "احذف هدف"], {
       en: "Open 13, Delete a savings goal. Press Delete on the goal, then confirm. Keep it leaves the goal in place. To change a goal instead, open 12, Update a savings goal, press Edit, and Save.",
       rw: "Fungura 13, Siba intego. Kanda Siba ku ntego, hanyuma wemeze. Kigume gisiga intego aho iri. Niba ushaka kuyihindura, fungura 12, Hindura intego, ukande Hindura, ukande Bika.",
       fr: "Ouvrez 13, Supprimer un objectif. Appuyez sur Supprimer, puis confirmez. Garder laisse l'objectif en place. Pour le changer, ouvrez 12, Modifier un objectif, appuyez sur Modifier, et Enregistrer.",
@@ -121,7 +121,7 @@
       pt: "Abra 13, Apagar uma meta de poupança. Prima Apagar na meta, e confirme. Manter deixa a meta no lugar. Para mudá-la, abra 12, Atualizar uma meta, prima Editar, e Guardar.",
       ar: "افتح 13، احذف هدف ادخار. اضغط حذف على الهدف، ثم أكّد. الإبقاء يترك الهدف في مكانه. لتغييره، افتح 12، حدّث هدف ادخار، اضغط تعديل، ثم احفظ."
     }),
-    intent(["goal", "goals", "savings goal", "add a goal", "intego", "objectif", "objectifs", "lengo", "malengo", "meta", "metas", "objetivo", "هدف", "أهداف"], {
+    intent("goal", ["goal", "goals", "savings goal", "add a goal", "intego", "objectif", "objectifs", "lengo", "malengo", "meta", "metas", "objetivo", "هدف", "أهداف"], {
       en: "Open 10 to add a goal. A simple goal needs a name, how much you want to reach, and a date. You can also type what you have already put aside. Open 11 to see the goals, 12 to update one, and 13 to delete one. On a goal, I saved more adds money you have put aside since the last time.",
       rw: "Fungura 10 wongereho intego. Intego isanzwe isaba izina, umubare ushaka kugera, n'itariki. Washyiramo n'ayo wamaze kubika. Fungura 11 urebe intego, 12 uhindure imwe, na 13 uyisibe. Ku ntego, Nabikije byinshi wongeraho amafaranga wabikije kuva ubushize.",
       fr: "Ouvrez 10 pour ajouter un objectif. Un objectif simple demande un nom, le montant à atteindre, et une date. Vous pouvez aussi noter ce que vous avez déjà mis de côté. Ouvrez 11 pour voir les objectifs, 12 pour en modifier un, et 13 pour en supprimer un. Sur un objectif, J'ai mis plus de côté ajoute l'argent mis de côté depuis la dernière fois.",
@@ -130,7 +130,7 @@
       pt: "Abra 10 para adicionar uma meta. Uma meta simples precisa de um nome, quanto quer alcançar, e uma data. Também pode anotar o que já pôs de lado. Abra 11 para ver as metas, 12 para atualizar uma, e 13 para apagar uma. Numa meta, Poupei mais soma o dinheiro posto de lado desde a última vez.",
       ar: "افتح 10 لإضافة هدف. الهدف البسيط يحتاج اسماً، والمبلغ الذي تريد بلوغه، وتاريخاً. يمكنك أيضاً كتابة ما وضعته جانباً. افتح 11 لرؤية الأهداف، و12 لتحديث واحد، و13 لحذف واحد. على الهدف، ادخرت المزيد يضيف المال الذي وضعته جانباً منذ آخر مرة."
     }),
-    intent(["smart", "five questions", "specific", "monthly contribution", "ibibazo bitanu", "cinq questions", "maswali matano", "cinco preguntas", "cinco perguntas", "خمسة أسئلة"], {
+    intent("smart", ["smart", "five questions", "specific", "monthly contribution", "ibibazo bitanu", "cinq questions", "maswali matano", "cinco preguntas", "cinco perguntas", "خمسة أسئلة"], {
       en: "A SMART goal is the same goal plus five short sentences. S is what exactly you are keeping the money for. M is how much you want to reach. A is how much you can put aside each month. R is why it matters to you. T is the date. The letters are only labels. The report tells you if the monthly step is keeping up with the date.",
       rw: "Intego SMART ni intego imwe yongerewe interuro eshatu n'ebyiri. S ni icyo ubika amafaranga. M ni umubare ushaka kugera. A ni umubare ushobora kubika buri kwezi. R ni impamvu bibaye ingirakamaro. T ni itariki. Inyuguti ni ibimenyetso gusa. Raporo ikubwira niba intambwe ya buri kwezi ihura n'itariki.",
       fr: "Un objectif SMART est le même objectif plus cinq phrases courtes. S est à quoi sert exactement l'argent. M est le montant à atteindre. A est ce que vous pouvez mettre de côté chaque mois. R est pourquoi cela compte. T est la date. Les lettres ne sont que des étiquettes. Le rapport dit si le pas mensuel suit la date.",
@@ -139,7 +139,7 @@
       pt: "Uma meta SMART é a mesma meta mais cinco frases curtas. S é para que guarda o dinheiro. M é quanto quer alcançar. A é quanto pode pôr de lado cada mês. R é por que importa. T é a data. As letras são só etiquetas. O relatório diz se o passo mensal acompanha a data.",
       ar: "هدف SMART هو الهدف نفسه مع خمس جمل قصيرة. S هو الغرض الدقيق من المال. M هو المبلغ الذي تريد بلوغه. A هو ما تستطيع وضعه جانباً كل شهر. R هو سبب أهميته. T هو التاريخ. الحروف مجرد عناوين. التقرير يقول إن كانت الخطوة الشهرية تواكب التاريخ."
     }),
-    intent(["emergency", "cushion", "hard week", "7 days", "days covered", "ibyago", "icyumweru kigoranye", "urgence", "dharura", "emergencia", "emergência", "طوارئ"], {
+    intent("emergency", ["emergency", "cushion", "hard week", "7 days", "days covered", "ibyago", "icyumweru kigoranye", "urgence", "dharura", "emergencia", "emergência", "طوارئ"], {
       en: "If the goal name says emergency, progress is shown as days of a hard week, from 0 to 7, plus the percent. It is how many of those 7 days the money already saved would cover. The percent is still there beside the days.",
       rw: "Niba izina ry'intego rivuga emergency, iterambere rigaragara nk'iminsi y'icyumweru kigoranye, kuva 0 kugeza 7, hamwe na ijana. Ni iminsi ingahe muri izo 7 amafaranga wamaze kubika yakwiganira. Ijana riracyari iruhande rw'iminsi.",
       fr: "Si le nom de l'objectif dit urgence, l'avancement s'affiche en jours d'une semaine difficile, de 0 à 7, plus le pourcentage. C'est combien de ces 7 jours l'argent déjà mis de côté couvrirait. Le pourcentage reste à côté des jours.",
@@ -148,7 +148,7 @@
       pt: "Se o nome da meta diz emergência, o progresso aparece como dias de uma semana difícil, de 0 a 7, mais a percentagem. É quantos desses 7 dias o dinheiro já posto de lado cobriria. A percentagem continua ao lado dos dias.",
       ar: "إذا كان اسم الهدف يقول طوارئ، يظهر التقدّم كأيام أسبوع صعب، من 0 إلى 7، مع النسبة. هو كم يوماً من تلك الأيام السبعة يغطيها المال المدّخر. النسبة تبقى بجانب الأيام."
     }),
-    intent(["i saved", "saved more", "put aside", "nabikije", "j'ai épargné", "nimeweka", "ahorré", "poupei", "ادخرت"], {
+    intent("saved", ["i saved", "saved more", "put aside", "nabikije", "j'ai épargné", "nimeweka", "ahorré", "poupei", "ادخرت"], {
       en: "On the goal list, open 11, View savings goals. Press I saved more, type the amount you just put aside, and Save. The amount already saved goes up, and the percent moves with it. That button is on the view step, not on the delete step.",
       rw: "Ku rutonde rw'intego, fungura 11, Reba intego. Kanda Nabikije ibindi, andika umubare ubu wabikije, ukande Bika. Umubare wabitswe wiyongera, n'ijana rinyurana na wo. Iryo buto riri ku ntambwe yo kureba, si ku ntambwe yo gusiba.",
       fr: "Dans la liste des objectifs, ouvrez 11, Voir les objectifs. Appuyez sur J'ai mis plus de côté, tapez le montant que vous venez de mettre de côté, et Enregistrer. Le montant déjà épargné monte, et le pourcentage suit. Ce bouton est sur l'étape de lecture, pas sur l'étape de suppression.",
@@ -157,7 +157,7 @@
       pt: "Na lista de metas, abra 11, Ver metas. Prima Guardei mais, escreva o valor que acabou de pôr de lado, e Guardar. O já poupado sobe, e a percentagem acompanha. Esse botão está no passo de ver, não no de apagar.",
       ar: "في قائمة الأهداف، افتح 11، اعرض الأهداف. اضغط وفّرت المزيد، واكتب المبلغ الذي وضعته جانباً الآن، ثم احفظ. المبلغ المدّخر يرتفع، والنسبة تتحرك معه. هذا الزر في خطوة العرض، وليس في خطوة الحذف."
     }),
-    intent(["currency", "dollar", "franc", "rwf", "usd", "exchange", "rate", "convert", "ifaranga", "igipimo", "monnaie", "devise", "taux", "sarafu", "bei", "moneda", "tipo", "moeda", "taxa", "عملة", "سعر"], {
+    intent("currency", ["currency", "dollar", "franc", "rwf", "usd", "exchange", "rate", "convert", "ifaranga", "igipimo", "monnaie", "devise", "taux", "sarafu", "bei", "moneda", "tipo", "moeda", "taxa", "عملة", "سعر"], {
       en: "In Settings, under Currency, choose the money these amounts are in, such as RWF or USD. The first choice only names the numbers. The next choice rewrites every amount with the central-bank rate for the day you pick. Leave the day empty for the newest published rate. The app shows the rate, for example 1 USD = 1,477.55 RWF, and waits until you press Change the amounts. With no internet, it uses a rate already saved on this phone and names the day. Amounts are rounded to the cent. Money from abroad, in a second currency, is not rewritten and stays out of the cash total.",
       rw: "Muri Igenamiterere, munsi y'Ifaranga, hitamo amafaranga aya mibare ari mo, nk'RWF cyangwa USD. Guhitamo kwa mbere gusa guha izina imibare. Ikindi gihindura buri mubare ukoresheje igipimo cy'amabanki nkuru cy'umunsi wahisemo. Siga umunsi ubusa kugira ngo ukoreshe igipimo gishya cyane. Porogaramu yerekana igipimo, urugero 1 USD = 1,477.55 RWF, itegereza ukande Hindura amafaranga. Nta interineti, ikoresha igipimo cyabitswe kuri iyi telefoni ikavuga umunsi. Imibare iringaniwe ku butumwa. Amafaranga akomoka mu mahanga, muri yindi faranga, ntahinduka kandi ntagira muri rusange.",
       fr: "Dans Réglages, sous Monnaie, choisissez l'argent de ces montants, comme RWF ou USD. Le premier choix ne fait que nommer les nombres. Le suivant réécrit chaque montant avec le taux des banques centrales du jour choisi. Laissez le jour vide pour le taux publié le plus récent. L'application montre le taux, par exemple 1 USD = 1 477,55 RWF, et attend que vous appuyiez sur Changer les montants. Sans internet, elle utilise un taux déjà enregistré sur ce téléphone et dit le jour. Les montants sont arrondis au centime. L'argent de l'étranger, dans une autre monnaie, n'est pas réécrit et reste hors du total.",
@@ -166,7 +166,7 @@
       pt: "Em Definições, sob Moeda, escolha o dinheiro destes valores, como RWF ou USD. A primeira escolha só dá nome aos números. A seguinte reescreve cada valor com a taxa dos bancos centrais do dia que escolher. Deixe o dia vazio para a taxa publicada mais recente. A aplicação mostra a taxa, por exemplo 1 USD = 1.477,55 RWF, e espera que prima Mudar os valores. Sem internet, usa uma taxa já guardada neste telemóvel e diz o dia. Os valores arredondam ao cêntimo. O dinheiro do estrangeiro, noutra moeda, não é reescrito e fica fora do total.",
       ar: "في الإعدادات، تحت العملة، اختر عملة هذه المبالغ، مثل RWF أو USD. الاختيار الأول يسمّي الأرقام فقط. الاختيار التالي يعيد كتابة كل مبلغ بسعر البنوك المركزية لليوم الذي تختاره. اترك اليوم فارغاً لأحدث سعر منشور. التطبيق يعرض السعر، مثلاً 1 USD = 1,477.55 RWF، وينتظر أن تضغط غيّر المبالغ. دون إنترنت، يستخدم سعراً محفوظاً على هذا الهاتف ويذكر اليوم. المبالغ تُقرَّب إلى السنت. المال الآتي من الخارج بعملة أخرى لا يُعاد كتابته ويبقى خارج المجموع."
     }),
-    intent(["abroad", "remittance", "second currency", "another currency", "amafaranga yo mu mahanga", "étranger", "nje", "remesa", "remessa", "الخارج", "حوالة"], {
+    intent("abroad", ["abroad", "remittance", "second currency", "another currency", "amafaranga yo mu mahanga", "étranger", "nje", "remesa", "remessa", "الخارج", "حوالة"], {
       en: "Money from abroad is only for a gift or pay that arrives in another currency. In Settings, type that currency, for example USD if your book is in RWF. When you add a transaction, you can mark it as that other money. Those amounts stay out of the income, expenses, and what you kept. Changing the main currency does not rewrite them.",
       rw: "Amafaranga yo mu mahanga ni ay'impano cyangwa umushahara uje muri yindi faranga. Muri Igenamiterere, andika iyo faranga, urugero USD niba igitabo cyawe kiri muri RWF. Wongeraho igikorwa, ushobora kukimenya nk'ayo yandi mafaranga. Ayo mafaranga ntagira mu yinjira, ayasohoka, n'ayo wabikije. Guhindura ifaranga nyamukuru ntibiyahindura.",
       fr: "L'argent de l'étranger sert seulement à un cadeau ou un paiement qui arrive dans une autre monnaie. Dans Réglages, écrivez cette monnaie, par exemple USD si votre cahier est en RWF. En ajoutant une transaction, vous pouvez la marquer comme cet autre argent. Ces montants restent hors des revenus, des dépenses, et de ce que vous avez gardé. Changer la monnaie principale ne les réécrit pas.",
@@ -175,7 +175,7 @@
       pt: "O dinheiro do estrangeiro é só para um presente ou um pagamento que chega noutra moeda. Em Definições, escreva essa moeda, por exemplo USD se o seu caderno está em RWF. Ao adicionar uma transação, pode marcá-la como esse outro dinheiro. Esses valores ficam fora dos rendimentos, das despesas, e do que guardou. Mudar a moeda principal não os reescreve.",
       ar: "المال من الخارج هو لهدية أو دفعة تصل بعملة أخرى. في الإعدادات، اكتب تلك العملة، مثلاً USD إذا كان دفترك بـ RWF. عند إضافة معاملة، يمكنك وسمها بتلك العملة الأخرى. هذه المبالغ تبقى خارج الدخل والمصروفات وما أبقيته. تغيير العملة الرئيسية لا يعيد كتابتها."
     }),
-    intent(["offline", "no internet", "without internet", "no connection", "nta interineti", "sans internet", "hors ligne", "bila intaneti", "sin internet", "sem internet", "دون إنترنت", "بدون نت"], {
+    intent("offline", ["offline", "no internet", "without internet", "no connection", "nta interineti", "sans internet", "hors ligne", "bila intaneti", "sin internet", "sem internet", "دون إنترنت", "بدون نت"], {
       en: "Yes. After this app has opened once on the phone, income, expenses, goals, reports, the menu, and this guide all work with no internet. The records stay on this phone. The status line says so. A brand-new currency pair, such as RWF to USD the first time, needs a connection once so the day's rate can be saved. After that, that change works offline too, and the guide tells you the day of the saved rate.",
       rw: "Yego. Iyi porogaramu imaze gufunguka rimwe kuri telefoni, ayinjira, ayasohoka, intego, raporo, urutonde, n'uyu muyobozi bikora nta interineti. Inyandiko ziguma kuri iyi telefoni. Umurongo w'imiterere ubivuga. Ifaranga nshya, nk'RWF ijya muri USD bwa mbere, isaba ihuriro rimwe kugira ngo igipimo cy'umunsi kibikwe. Nyuma y'ibyo, iryo hinduka rikora nta interineti, kandi umuyobozi akubwira umunsi w'igipimo cyabitswe.",
       fr: "Oui. Après une première ouverture sur le téléphone, les revenus, les dépenses, les objectifs, les rapports, le menu, et ce guide fonctionnent sans internet. Les notes restent sur ce téléphone. Une paire de monnaies nouvelle, comme RWF vers USD la première fois, a besoin d'une connexion une fois pour enregistrer le taux du jour. Ensuite, ce changement fonctionne aussi hors ligne, et le guide dit le jour du taux enregistré.",
@@ -184,7 +184,7 @@
       pt: "Sim. Depois de esta aplicação abrir uma vez no telemóvel, os rendimentos, as despesas, as metas, os relatórios, o menu, e este guia funcionam sem internet. Os registos ficam neste telemóvel. Um par de moedas novo, como RWF para USD da primeira vez, precisa de uma ligação uma vez para guardar a taxa do dia. Depois, essa mudança também funciona sem internet, e o guia diz o dia da taxa guardada.",
       ar: "نعم. بعد فتح هذا التطبيق مرة على الهاتف، الدخل والمصروفات والأهداف والتقارير والقائمة وهذا الدليل تعمل دون إنترنت. السجلات تبقى على هذا الهاتف. زوج عملات جديد، مثل RWF إلى USD أول مرة، يحتاج اتصالاً مرة واحدة ليحفظ سعر ذلك اليوم. بعد ذلك، هذا التغيير يعمل دون إنترنت أيضاً، والدليل يذكر يوم السعر المحفوظ."
     }),
-    intent(["lock", "pin", "password", "shared phone", "privacy", "gufunga", "ijambo ry'ibanga", "verrou", "mot de passe", "téléphone partagé", "funga", "nywila", "simu", "bloqueo", "contraseña", "teléfono compartido", "trancado", "palavra-passe", "قفل", "رمز", "هاتف مشترك", "خصوصية"], {
+    intent("lock", ["lock", "pin", "password", "shared phone", "privacy", "gufunga", "ijambo ry'ibanga", "verrou", "mot de passe", "téléphone partagé", "funga", "nywila", "simu", "bloqueo", "contraseña", "teléfono compartido", "trancado", "palavra-passe", "قفل", "رمز", "هاتف مشترك", "خصوصية"], {
       en: "A friend may know the phone password and still should not read this book. In Settings, under On a shared phone, set a lock used only by this app. It asks for that lock when the app opens. The lock stays on this phone. It is not inside an exported file, and it is not sent anywhere. This app does not scan a face. Hide amounts covers the numbers while someone is looking. Press the same button to show them again.",
       rw: "Inshuti ishobora kumenya ijambo ry'ibanga rya telefoni ikaba itagombye gusoma iki gitabo. Muri Igenamiterere, munsi ya Kuri telefoni musangiye, shyiraho ifunga ikoreshwa n'iyi porogaramu gusa. Iyibaza iyo porogaramu ifunguka. Ifunga iguma kuri iyi telefoni. Ntabwo iri muri dosiye yoherejwe, kandi ntiyoherezwa ahandi. Iyi porogaramu ntisuzuma isura. Hisha imibare ipfuka imibare mugihe umuntu areba. Kanda buto imwe wongere uyiyereke.",
       fr: "Un ami peut connaître le mot de passe du téléphone et ne doit pas lire ce cahier. Dans Réglages, sous Sur un téléphone partagé, posez un verrou utilisé seulement par cette application. Elle le demande à l'ouverture. Le verrou reste sur ce téléphone. Il n'est pas dans un fichier exporté, et il n'est envoyé nulle part. Cette application ne scanne pas un visage. Masquer les montants couvre les nombres pendant qu'une personne regarde. Le même bouton les montre à nouveau.",
@@ -193,7 +193,7 @@
       pt: "Um amigo pode saber a palavra-passe do telemóvel e mesmo assim não deve ler este caderno. Em Definições, sob Num telemóvel partilhado, ponha um trinco usado só por esta aplicação. Ela pede-o ao abrir. O trinco fica neste telemóvel. Não está dentro de um ficheiro exportado, e não é enviado para lado nenhum. Esta aplicação não lê um rosto. Ocultar valores tapa os números enquanto alguém olha. O mesmo botão mostra-os de novo.",
       ar: "قد يعرف صديق كلمة سر الهاتف ومع ذلك لا ينبغي أن يقرأ هذا الدفتر. في الإعدادات، تحت على هاتف مشترك، ضع قفلاً يستخدمه هذا التطبيق فقط. يطلبه عند الفتح. القفل يبقى على هذا الهاتف. ليس داخل ملف مُصدَّر، ولا يُرسل إلى أي مكان. هذا التطبيق لا يمسح وجهاً. إخفاء المبالغ يغطي الأرقام بينما ينظر أحد. الزر نفسه يعيدها."
     }),
-    intent(["hide", "show amounts", "cover", "hisha", "masquer", "afficher", "ficha", "onyesha", "ocultar", "mostrar", "ocultar valores", "إخفاء", "أظهر"], {
+    intent("hide", ["hide", "show amounts", "cover", "hisha", "masquer", "afficher", "ficha", "onyesha", "ocultar", "mostrar", "ocultar valores", "إخفاء", "أظهر"], {
       en: "Hide amounts is the button at the top. It covers the numbers while a colleague looks at the phone. Press it again, Show amounts, to bring the numbers back. The records are still there. Only the figures are covered.",
       rw: "Hisha umubare ni buto yo hejuru. Ipfuka imibare mugihe mugenzi areba telefoni. Yongera kuyikanda, Erekana umubare, kugira ngo imibare igaruke. Inyandiko ziracyari aho. Imibare ni yo ipfuye gusa.",
       fr: "Cacher les montants est le bouton en haut. Il couvre les nombres pendant qu'un collègue regarde le téléphone. Appuyez encore, Montrer les montants, pour ramener les nombres. Les notes sont toujours là. Seuls les chiffres sont couverts.",
@@ -202,16 +202,16 @@
       pt: "Esconder valores é o botão de cima. Tapa os números enquanto um colega olha para o telemóvel. Prima outra vez, Mostrar valores, para trazer os números. Os registos continuam lá. Só os números estão tapados.",
       ar: "أخفِ المبالغ هو الزر في الأعلى. يغطي الأرقام بينما ينظر زميل إلى الهاتف. اضغطه مرة أخرى، أظهر المبالغ، لتعود الأرقام. السجلات ما زالت هناك. الأرقام وحدها مغطاة."
     }),
-    intent(["language", "kinyarwanda", "ikinyarwanda", "french", "français", "kiswahili", "swahili", "spanish", "español", "portuguese", "português", "arabic", "text size", "ururimi", "ingano", "langue", "taille", "lugha", "ukubwa", "idioma", "tamaño", "língua", "tamanho", "لغة", "حجم"], {
-      en: "Each time you open the app, after the lock if you set one, choose a language and then a currency. The list includes English, Ikinyarwanda, Français, Kiswahili, Español, Português, العربية, and other languages used by many people. The menu and the pages follow that language. Amounts are exchanged only when you pick a different currency, at that day's central-bank rate. You can change both again in Settings. Arabic and Urdu run from right to left. The sun mark stays at the physical top right.",
-      rw: "Muri Igenamiterere, hitamo English, Ikinyarwanda, Français, Kiswahili, Español, Português, cyangwa العربية. Ushobora kandi gushyira inyandiko ku Nini cyangwa Ninini. Icyarabu kivuye iburyo ugana ibumoso. Izuba riguma hejuru iburyo. Uyu muyobozi asubiza mu rurimi wahisemo.",
-      fr: "Dans Réglages, choisissez English, Ikinyarwanda, Français, Kiswahili, Español, Português, ou العربية. Vous pouvez aussi mettre le texte en Grand ou Plus grand. L'arabe va de droite à gauche. Le soleil reste en haut à droite. Ce guide répond dans la langue choisie.",
-      sw: "Katika Mipangilio, chagua English, Ikinyarwanda, Français, Kiswahili, Español, Português, au العربية. Unaweza pia kuweka maandishi Makubwa au Makubwa zaidi. Kiarabu kinakwenda kulia kwenda kushoto. Jua linabaki juu kulia. Mwongozo huu unajibu kwa lugha uliyochagua.",
-      es: "En Ajustes, elija English, Ikinyarwanda, Français, Kiswahili, Español, Português, o العربية. También puede poner el texto en Grande o Más grande. El árabe va de derecha a izquierda. El sol se queda arriba a la derecha. Esta guía responde en el idioma que eligió.",
-      pt: "Em Definições, escolha English, Ikinyarwanda, Français, Kiswahili, Español, Português, ou العربية. Também pode pôr o texto em Grande ou Maior. O árabe corre da direita para a esquerda. O sol fica em cima à direita. Este guia responde na língua que escolheu.",
-      ar: "في الإعدادات، اختر English أو Ikinyarwanda أو Français أو Kiswahili أو Español أو Português أو العربية. يمكنك أيضاً جعل النص كبيراً أو أكبر. العربية تسير من اليمين إلى اليسار. الشمس تبقى في أعلى اليمين. هذا الدليل يجيب باللغة التي اخترتها."
+    intent("language", ["language", "kinyarwanda", "ikinyarwanda", "kenyarwanda", "french", "français", "kiswahili", "swahili", "spanish", "español", "portuguese", "português", "arabic", "text size", "ururimi", "ingano", "langue", "taille", "lugha", "ukubwa", "idioma", "tamaño", "língua", "tamanho", "لغة", "حجم"], {
+      en: "Each time you open the app, after the lock if you set one, search for a language. Type a country or a language, such as Rwanda or Kinyarwanda. The country appears first, then the language. The menu, every page, and this guide follow that language, and this guide speaks it the way that language is spoken. Then search for a currency. Amounts are exchanged only when you pick a different currency, at that day's central-bank rate. You can change both again in Settings. Arabic runs from right to left. The sun mark stays at the physical top right.",
+      rw: "Iyo ufungura porogaramu, nyuma y'ifunga niba wayishyizeho, shakisha ururimi. Andika igihugu cyangwa ururimi, nk'u Rwanda cyangwa Ikinyarwanda. Igihugu kigaragaram mbere, hanyuma ururimi. Urutonde, ipaji yose, n'uyu muyobozi bakurikiza urwo rurimi, kandi uyu muyobozi aruvuga uko abavuga urwo rurimi baruvuga. Hanyuma shakisha ifaranga. Imibare ihinduka gusa iyo uhisemo ifaranga itandukanye, ku gipimo cya banki nkuru cy'uwo munsi. Ushobora kubihindura muri Igenamiterere. Icyarabu kivuye iburyo ukajya ibumoso. Izuba riguma hejuru iburyo.",
+      fr: "Chaque fois que vous ouvrez l'application, après le verrou si vous en avez mis un, cherchez une langue. Écrivez un pays ou une langue, par exemple Rwanda ou Kinyarwanda. Le pays apparaît d'abord, puis la langue. Le menu, chaque page, et ce guide suivent cette langue, et ce guide la parle comme elle se parle. Ensuite cherchez une monnaie. Les montants sont changés seulement quand vous choisissez une autre monnaie, au taux de la banque centrale de ce jour. Vous pouvez changer les deux dans Réglages. L'arabe va de droite à gauche. Le soleil reste en haut à droite.",
+      sw: "Kila ukifungua programu, baada ya kufuli ikiwa uliiweka, tafuta lugha. Andika nchi au lugha, kama Rwanda au Kinyarwanda. Nchi inaonekana kwanza, kisha lugha. Menyu, kila ukurasa, na mwongozo huu vinafuata lugha hiyo, na mwongozo huu unaisema jinsi inavyosemwa. Kisha tafuta sarafu. Kiasi kinabadilishwa tu unapochagua sarafu nyingine, kwa bei ya benki kuu ya siku hiyo. Unaweza kubadilisha vyote katika Mipangilio. Kiarabu kinakwenda kulia kwenda kushoto. Jua linabaki juu kulia.",
+      es: "Cada vez que abre la aplicación, después del bloqueo si puso uno, busque un idioma. Escriba un país o un idioma, como Ruanda o Kinyarwanda. El país aparece primero, luego el idioma. El menú, cada página y esta guía siguen ese idioma, y esta guía lo habla como se habla. Después busque una moneda. Las cantidades se cambian solo cuando elige otra moneda, al tipo del banco central de ese día. Puede cambiar los dos en Ajustes. El árabe va de derecha a izquierda. El sol se queda arriba a la derecha.",
+      pt: "Cada vez que abre a aplicação, depois do trinco se pôs um, procure uma língua. Escreva um país ou uma língua, como Ruanda ou Kinyarwanda. O país aparece primeiro, depois a língua. O menu, cada página e este guia seguem essa língua, e este guia fala-a como ela se fala. Depois procure uma moeda. Os valores mudam só quando escolhe outra moeda, à taxa do banco central desse dia. Pode mudar os dois em Definições. O árabe corre da direita para a esquerda. O sol fica em cima à direita.",
+      ar: "في كل مرة تفتح التطبيق، بعد القفل إذا وضعت واحداً، ابحث عن لغة. اكتب بلداً أو لغة، مثل رواندا أو Kinyarwanda. البلد يظهر أولاً، ثم اللغة. القائمة وكل صفحة وهذا الدليل يتبعون تلك اللغة، وهذا الدليل ينطقها كما ينطقها أهلها. ثم ابحث عن عملة. المبالغ تتغير فقط عندما تختار عملة أخرى، بسعر البنك المركزي لذلك اليوم. يمكنك تغيير الاثنين في الإعدادات. العربية تسير من اليمين إلى اليسار. الشمس تبقى في أعلى اليمين."
     }),
-    intent(["export", "import", "erase", "backup", "copy", "ohereza dosiye", "siba byose", "exporter", "importer", "effacer", "hamisha", "leta", "futa", "exportar", "importar", "borrar", "exportar", "apagar", "تصدير", "استيراد", "مسح"], {
+    intent("export", ["export", "import", "erase", "backup", "copy", "ohereza dosiye", "siba byose", "exporter", "importer", "effacer", "hamisha", "leta", "futa", "exportar", "importar", "borrar", "exportar", "apagar", "تصدير", "استيراد", "مسح"], {
       en: "In Settings, Export records saves a file you can keep before you change phones. Import records reads that same file back. Erase all records clears the book after you confirm. Start with my own money begins again. Put the example records back restores the sample life. The app lock is not inside the exported file.",
       rw: "Muri Igenamiterere, Ohereza inyandiko ibika dosiye ushobora kubika mbere yo guhindura telefoni. Kwinjiza inyandiko bisoma iyo dosiye. Siba inyandiko zose bisiba igitabo wamaze kwemera. Tangira ku mafaranga yanjye bisubiramo. Subiza inyandiko z'urugero bizana ubuzima bw'urugero. Ifunga ntabwo iri muri dosiye yoherejwe.",
       fr: "Dans Réglages, Exporter les notes enregistre un fichier à garder avant de changer de téléphone. Importer relit ce même fichier. Effacer toutes les notes vide le cahier après confirmation. Recommencer avec mon argent recommence. Remettre l'exemple ramène la vie d'exemple. Le verrou n'est pas dans le fichier exporté.",
@@ -220,7 +220,7 @@
       pt: "Em Definições, Exportar registos guarda um ficheiro para levar antes de mudar de telemóvel. Importar registos lê esse mesmo ficheiro. Apagar todos os registos esvazia o caderno depois de confirmar. Começar com o meu dinheiro recomeça. Repor o exemplo traz a vida de exemplo. O trinco não está dentro do ficheiro exportado.",
       ar: "في الإعدادات، تصدير السجلات يحفظ ملفاً تحتفظ به قبل تغيير الهاتف. استيراد السجلات يقرأ ذلك الملف. مسح كل السجلات يفرّغ الدفتر بعد التأكيد. ابدأ بأموالي يبدأ من جديد. إعادة سجلات المثال تعيد حياة المثال. القفل ليس داخل الملف المُصدَّر."
     }),
-    intent(["example", "sample", "zanzibar", "urugero", "exemple", "mfano", "ejemplo", "exemplo", "مثال"], {
+    intent("example", ["example", "sample", "zanzibar", "urugero", "exemple", "mfano", "ejemplo", "exemplo", "مثال"], {
       en: "Look at the example is on the first screen. Put the example records back is in Settings. The example is a sample life, with income, expenses, and goals, including a trip. It is not your money. When you finish your own three questions, your answers replace it.",
       rw: "Reba urugero iri ku rupapuro rwa mbere. Subiza inyandiko z'urugero biri muri Igenamiterere. Urugero ni ubuzima bw'icyitegererezo, bufite ayinjira, ayasohoka, n'intego, harimo n'urugendo. Si amafaranga yawe. Nuhaza ibibazo byawe bitatu, ibisubizo byawe bisimbura urwo rugero.",
       fr: "Voir l'exemple est sur le premier écran. Remettre les notes d'exemple est dans Réglages. L'exemple est une vie d'échantillon, avec des revenus, des dépenses, et des objectifs, dont un voyage. Ce n'est pas votre argent. Quand vous terminez vos trois questions, vos réponses le remplacent.",
@@ -229,7 +229,7 @@
       pt: "Ver o exemplo está no primeiro ecrã. Repor os registos de exemplo está em Definições. O exemplo é uma vida de amostra, com rendimentos, despesas, e metas, incluindo uma viagem. Não é o seu dinheiro. Quando terminar as suas três perguntas, as suas respostas substituem-no.",
       ar: "انظر إلى المثال في الشاشة الأولى. إعادة سجلات المثال في الإعدادات. المثال حياة عيّنة، فيها دخل ومصروفات وأهداف، ومنها رحلة. ليس مالك. عندما تنهي أسئلتك الثلاثة، إجاباتك تحل مكانه."
     }),
-    intent(["exit", "quit", "close the app", "gusohoka", "quitter", "toka", "salir", "sair", "خروج"], {
+    intent("exit", ["exit", "quit", "close the app", "gusohoka", "quitter", "toka", "salir", "sair", "خروج"], {
       en: "0, Exit, does not close the browser. It tells you the records are saved on this phone. Back to the menu returns to the numbered list. Previous, from Exit, goes to the savings progress report.",
       rw: "0, Gusohoka, ntabwo gufunga mushakisha. Kikubwira ko inyandiko zabitswe kuri iyi telefoni. Garuka ku rutonde bigaruka ku mibare. Ibanje, uva kuri Gusohoka, ijya kuri raporo y'iterambere ry'intego.",
       fr: "0, Quitter, ne ferme pas le navigateur. Il dit que les notes sont enregistrées sur ce téléphone. Retour au menu ramène à la liste numérotée. Précédent, depuis Quitter, va au rapport d'avancement de l'épargne.",
@@ -238,7 +238,7 @@
       pt: "0, Sair, não fecha o navegador. Diz que os registos estão guardados neste telemóvel. Voltar ao menu regressa à lista numerada. Anterior, a partir de Sair, vai ao relatório do progresso da poupança.",
       ar: "0، خروج، لا يغلق المتصفح. يقول إن السجلات محفوظة على هذا الهاتف. العودة إلى القائمة ترجع إلى اللائحة المرقّمة. السابق، من الخروج، يذهب إلى تقرير تقدّم الادخار."
     }),
-    intent(["literacy", "inclusion", "poverty", "why this app", "ubukene", "inclusion", "uburezi", "pauvreté", "inclusion", "umaskini", "pobreza", "inclusión", "pobreza", "inclusão", "فقر", "شمول"], {
+    intent("why", ["literacy", "inclusion", "poverty", "why this app", "ubukene", "inclusion", "uburezi", "pauvreté", "inclusion", "umaskini", "pobreza", "inclusión", "pobreza", "inclusão", "فقر", "شمول"], {
       en: "The purpose is practice with your own money, so a hard week does not empty the house without warning. You see what came in, what went out, what you kept, and how close a goal is. That is a step toward financial inclusion: a person can keep a clear book without a bank account and without an internet connection. The records stay on this phone.",
       rw: "Intego ni kwitoza ku mafaranga yawe, kugira ngo icyumweru kigoranye kitaguta inyuma utabimenye. Ubona ibyinjiye, ibyasohotse, ibyo wabikije, n'intego igeze he. Iryo ni intambwe yo kwinjiza abantu mu by'imari: umuntu ashobora kubika igitabo gisobanutse nta konti ya banki kandi nta interineti. Inyandiko ziguma kuri iyi telefoni.",
       fr: "Le but est de s'exercer avec son propre argent, pour qu'une semaine difficile ne vide pas la maison sans prévenir. Vous voyez ce qui est entré, ce qui est sorti, ce que vous avez gardé, et où en est un objectif. C'est un pas vers l'inclusion financière : une personne peut tenir un cahier clair sans compte bancaire et sans internet. Les notes restent sur ce téléphone.",
@@ -313,20 +313,8 @@
   }
 
   function speak(text) {
-    if (!hear || !window.speechSynthesis || !text) return;
-    silence();
-    var utterance = new SpeechSynthesisUtterance(text);
-    var code = lang();
-    var voice = pickVoice(code);
-    if (voice) {
-      utterance.voice = voice;
-      utterance.lang = voice.lang;
-    } else {
-      utterance.lang = SPEECH_LANG[code] || "en-US";
-    }
-    utterance.rate = 0.92;
-    utterance.pitch = 0.82;
-    window.speechSynthesis.speak(utterance);
+    if (!hear || !text) return;
+    if (window.BT.speech) window.BT.speech.say(text, lang());
   }
 
   function guideNote(kind) {
@@ -341,7 +329,12 @@
     try { recognition.stop(); } catch (err) { listening = false; }
   }
 
-  function startListen() {
+  function listenTag(fallback) {
+    if (fallback) return fallback;
+    return window.BT.speech ? window.BT.speech.tag(lang()) : (SPEECH_LANG[lang()] || "en-US");
+  }
+
+  function startListen(fallbackTag) {
     var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!Rec) {
       guideNote("unsupported");
@@ -356,7 +349,7 @@
     heardText = "";
     voiceError = "";
     recognition = new Rec();
-    recognition.lang = SPEECH_LANG[lang()] || "en-US";
+    recognition.lang = listenTag(fallbackTag);
     recognition.interimResults = true;
     recognition.continuous = false;
     recognition.maxAlternatives = 1;
@@ -373,13 +366,19 @@
     recognition.onend = function () {
       var text = heardText;
       var err = voiceError;
+      var used = recognition ? recognition.lang : "";
       heardText = "";
       voiceError = "";
       listening = false;
       recognition = null;
       var input = document.getElementById("guide-input");
-      if (input) input.value = "";
+      if (input && text) input.value = text;
       paint();
+      if (!text && err === "language-not-supported" && used && used.indexOf("-") !== -1 && !fallbackTag) {
+        startListen(used.split("-")[0]);
+        return;
+      }
+      if (input) input.value = "";
       if (text) say(text, { spoken: true });
       else if (err === "not-allowed" || err === "service-not-allowed") guideNote("blocked");
       else if (err === "network") guideNote("network");
@@ -520,8 +519,13 @@
       silence();
       if (listening) stopListen();
     }
-    if (open && !messages.length) messages.push({ role: "guide", text: answer("hello") });
+    var greet = false;
+    if (open && !messages.length) {
+      messages.push({ role: "guide", text: answer("hello") });
+      greet = true;
+    }
     paint();
+    if (greet) speak(messages[messages.length - 1].text);
     if (open) {
       var input = document.getElementById("guide-input");
       if (input) input.focus();
@@ -572,9 +576,27 @@
     paint();
   }
 
+  function addLanguage(code, pack) {
+    if (!code || !pack || !pack.ui) return;
+    UI[code] = pack.ui;
+    SUGGEST[code] = pack.suggest || SUGGEST.en;
+    FALLBACK[code] = pack.fallback || FALLBACK.en;
+    (pack.lines || []).forEach(function (line) {
+      var item = null;
+      var i;
+      for (i = 0; i < INTENTS.length; i++) {
+        if (INTENTS[i].id === line.id) item = INTENTS[i];
+      }
+      if (!item) return;
+      item.text[code] = line.text;
+      if (line.keys && line.keys.length) item.keys = item.keys.concat(line.keys);
+    });
+  }
+
   BT.guide = {
     sync: paint,
-    answer: answer
+    answer: answer,
+    addLanguage: addLanguage
   };
 
   if (typeof document !== "undefined") {

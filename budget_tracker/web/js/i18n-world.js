@@ -74,6 +74,8 @@
     "choose-currency": "Der Name, den Sie für Geld verwenden",
     "entry-lang": "Welche Sprache möchten Sie?",
     "entry-lang-help": "Das Menü und jede Seite nutzen diese Sprache.",
+    "language-find": "Schreiben Sie ein Land oder eine Sprache, zum Beispiel Ruanda oder Kinyarwanda.",
+    "language-none": "Keine Sprache passt dazu.",
     "entry-money": "Welche Währung möchten Sie?",
     "entry-money-help": "Einnahmen, Ausgaben und das Gesparte stehen in dieser Währung. Wenn die Einträge schon eine andere Währung haben, werden die Beträge zum Kurs der Zentralbank von diesem Tag umgerechnet.",
     "no-symbol": "Kein Zeichen",

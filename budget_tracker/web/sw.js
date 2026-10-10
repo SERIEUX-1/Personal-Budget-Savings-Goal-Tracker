@@ -2,7 +2,7 @@
  * The app shell is stored on the phone so Budget Tracker opens with no internet.
  * Records are not cached here; they stay in the JSON file or in the browser.
  */
-var CACHE = "budget-tracker-v44";
+var CACHE = "budget-tracker-v45";
 var ASSETS = [
   "./",
   "./index.html",

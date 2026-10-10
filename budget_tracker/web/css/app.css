@@ -882,23 +882,10 @@ body.is-printing #print-sheet {
   position: absolute;
   top: 0;
   right: 0;
-  width: 64px;
-  height: 64px;
+  width: 88px;
+  height: 88px;
 }
 .st-sun img { width: 100%; height: 100%; display: block; }
-.st-sun-name {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #000;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  text-align: center;
-  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
-}
 .st-brand {
   margin: 0 0 6px;
   color: #000;
@@ -913,7 +900,7 @@ body.is-printing #print-sheet {
   align-items: flex-end;
   gap: 24px;
   position: relative;
-  padding: 0 76px 18px 0;
+  padding: 0 100px 18px 0;
   border-bottom: 1px solid #000;
 }
 .statement h1 {
@@ -1247,10 +1234,6 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
   .st-logo {
     background: transparent !important;
   }
-  .st-sun-name {
-    color: #000 !important;
-    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff !important;
-  }
   .statement {
     max-width: none;
     margin: 0 !important;
@@ -1261,7 +1244,7 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
   .st-kpi strong { font-size: 16pt; }
   .st-table td, .st-table tfoot td { font-size: 12pt; }
   .st-table th { font-size: 11pt; }
-  .statement, .st-kpi, .st-table, .st-table th, .st-table td, .st-seal, .st-logo, .st-sun, .st-sun-name {
+  .statement, .st-kpi, .st-table, .st-table th, .st-table td, .st-seal, .st-logo, .st-sun {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

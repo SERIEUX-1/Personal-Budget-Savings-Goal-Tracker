@@ -1786,7 +1786,7 @@ function chip(action, value, label, active) {
       : "";
     return '<article class="statement"><header class="st-head"><div class="st-id"><img class="st-logo" src="icons/icon.svg" alt=""><div><p class="st-brand">Budget Tracker</p><h1>' +
       esc(model.title) + "</h1>" + (model.period ? '<p class="st-period">' + esc(model.period) + "</p>" : "") +
-      '</div></div><span class="st-sun"><img src="img/sun.png" alt=""><span class="st-sun-name">Sun</span></span><div class="st-meta">' +
+      '</div></div><span class="st-sun"><img src="img/sun.png" alt="Sun"></span><div class="st-meta">' +
       (currency ? "<strong>" + esc(currency) + "</strong>" : "") + "<p>" +
       esc(t("pdf-prepared", { date: L.formatDate(prepared) })) + "</p></div></header>" + body + code +
       '<p class="st-save no-print"><button type="button" class="btn btn-secondary" data-action="close-pdf">' +

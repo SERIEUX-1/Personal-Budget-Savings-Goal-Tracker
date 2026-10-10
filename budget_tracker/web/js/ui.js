@@ -27,7 +27,7 @@
     { id: "exit", n: "0", key: "m0" }
   ];
   var TURN = MENU.filter(function (item) { return item.id; }).map(function (item) { return item.id; });
-  var PAGES = ["menu", "settings"].concat(TURN);
+  var PAGES = ["menu", "settings", "check"].concat(TURN);
   function catalogFor(type) {
     var catalog = window.BT.categories || {};
     return (type === "income" ? catalog.income : catalog.expense) || [];
@@ -57,7 +57,9 @@
     entryCurrency: "",
     entryPending: false,
     currencyQuery: "",
-    languageQuery: ""
+    languageQuery: "",
+    checkCode: "",
+    checkResult: null
   };
 
   function t(key, vars) {
@@ -95,6 +97,7 @@
     var item = MENU.filter(function (row) { return row.id === page; })[0];
     if (item) return t(item.key);
     if (page === "settings") return t("nav-settings");
+    if (page === "check") return t("check-report");
     return t("m-title");
   }
 
@@ -199,7 +202,7 @@
   }
 
   function neighbors() {
-    if (state.page === "settings") return { index: -1, prev: "menu", next: "" };
+    if (state.page === "settings" || state.page === "check") return { index: -1, prev: "menu", next: "" };
     var index = TURN.indexOf(state.page);
     if (index === -1) return { index: -1, prev: "", next: TURN[0] };
     return {
@@ -278,7 +281,8 @@
         "goal-search": function () { return renderGoals("search"); },
         progress: function () { return renderOneReport("progress"); },
         exit: renderExit,
-        settings: renderSettings
+        settings: renderSettings,
+        check: renderCheck
       }[state.page]();
     }
     app.innerHTML = html;
@@ -286,6 +290,10 @@
     if (!state.setup && !state.locked && state.page === "add" && document.getElementById("tx-form")) prepareTxForm(null);
     if (!state.setup && !state.locked && state.page === "add-goal" && document.getElementById("goal-form")) prepareGoalForm(null);
     setNav();
+    if (state.page === "check" && !state.locked && !state.entry && !state.setup) {
+      var checkBox = document.getElementById("check-code");
+      if (checkBox) checkBox.focus();
+    }
     if (state.entry === "money" || state.entry === "lang") {
       var search = document.getElementById(state.entry === "money" ? "currency-search" : "language-search");
       if (search) search.focus();
@@ -571,7 +579,9 @@ function chip(action, value, label, active) {
 
   function renderMenu() {
     return '<section class="cli-board"><h1>' + esc(t("m-title")) + '</h1><p class="lede cli-lead">' + esc(t("menu-lead")) +
-      '</p><div class="cli-rule"></div>' + menuMarkup() + '<div class="cli-rule"></div>' + stepButtons() + "</section>";
+      '</p><div class="cli-rule"></div>' + menuMarkup() + '<div class="cli-rule"></div>' +
+      '<div class="row-actions"><button type="button" class="btn btn-secondary" data-action="nav" data-page="check">' +
+      esc(t("check-report")) + "</button></div>" + stepButtons() + "</section>";
   }
 
   function renderAddTx() {
@@ -944,6 +954,9 @@ function chip(action, value, label, active) {
       '<div class="row-actions"><button type="button" class="btn btn-primary" data-action="set-lock">' + esc(locked ? t("change-pin") : t("set-pin")) + "</button>" +
       (locked ? '<button type="button" class="btn btn-secondary" data-action="remove-lock">' + esc(t("remove-pin")) + "</button>" : "") +
       "</div></section>" +
+      '<section class="block"><h2>' + esc(t("check-report")) + "</h2><p>" + esc(t("check-help")) + "</p>" +
+      '<div class="row-actions"><button type="button" class="btn btn-primary" data-action="nav" data-page="check">' +
+      esc(t("check-report")) + "</button></div></section>" +
       '<section class="block"><h2>' + esc(t("your-copy")) + "</h2><p>" + esc(t("copy-help")) + "</p>" +
       '<div class="row-actions"><button type="button" class="btn btn-primary" data-action="export">' + esc(t("export")) + "</button>" +
       '<button type="button" class="btn btn-secondary" data-action="pick-import">' + esc(t("import")) + "</button>" +
@@ -1419,6 +1432,12 @@ function chip(action, value, label, active) {
       var langBox = document.getElementById("language-results");
       if (langBox) langBox.innerHTML = languageResultHtml(state.languageQuery, languageSearchSelected());
     }
+    if (e.target.id === "check-code") {
+      state.checkCode = e.target.value;
+      state.checkResult = null;
+      var shown = document.querySelector(".check-result, .check-bad");
+      if (shown) shown.remove();
+    }
     if (e.target.id === "currency-search") {
       state.currencyQuery = e.target.value;
       var results = document.getElementById("currency-results");
@@ -1427,6 +1446,15 @@ function chip(action, value, label, active) {
   });
 
   document.body.addEventListener("submit", function (e) {
+    if (e.target.id === "check-form") {
+      e.preventDefault();
+      var typed = document.getElementById("check-code");
+      state.checkCode = typed ? typed.value : "";
+      var found = window.BT.reportSeal.read(state.checkCode);
+      state.checkResult = found ? { ok: true, figures: found } : { ok: false };
+      render();
+      return;
+    }
     if (busy) { e.preventDefault(); return; }
     if (e.target.id === "today-form") {
       e.preventDefault();
@@ -1649,7 +1677,7 @@ function chip(action, value, label, active) {
   }
 
   function pdfKpi(label, value, cls) {
-    return "<div><span>" + esc(label) + "</span><strong" + (cls ? ' class="' + cls + '"' : "") + ">" + esc(value) + "</strong></div>";
+    return '<div class="st-kpi' + (cls ? " " + cls : "") + '"><span>' + esc(label) + "</span><strong>" + esc(value) + "</strong></div>";
   }
 
   function widthClass(part, total) {
@@ -1732,14 +1760,36 @@ function chip(action, value, label, active) {
     }).join("");
   }
 
-  function statementShell(model, body) {
+  function sealFigures(model, a, b, c) {
+    return {
+      kind: model.kind,
+      page: state.page,
+      currency: String(state.data.currency || "").trim(),
+      a: a,
+      b: b,
+      c: c,
+      prepared: L.todayISO(),
+      day: state.page === "day" ? selectedDay() : ""
+    };
+  }
+
+  function statementSeal(model, a, b, c) {
+    var figures = sealFigures(model, a, b, c);
+    return { prepared: figures.prepared, code: window.BT.reportSeal.code(figures) };
+  }
+
+  function statementShell(model, body, seal) {
     var currency = String(state.data.currency || "").trim();
+    var prepared = seal && seal.prepared ? seal.prepared : L.todayISO();
+    var code = seal && seal.code
+      ? '<footer class="st-seal"><span>' + esc(t("check-code")) + "</span><strong>" + esc(seal.code) + "</strong></footer>"
+      : "";
     return '<article class="statement"><header class="st-head"><div class="st-id"><img class="st-logo" src="icons/icon.svg" alt=""><div><p class="st-brand">Budget Tracker</p><h1>' +
       esc(model.title) + "</h1>" + (model.period ? '<p class="st-period">' + esc(model.period) + "</p>" : "") +
-      '</div></div><img class="st-sun" src="img/sun.png" alt=""><div class="st-meta">' +
+      '</div></div><span class="st-sun"><img src="img/sun.png" alt=""><span class="st-sun-name">Sun</span></span><div class="st-meta">' +
       (currency ? "<strong>" + esc(currency) + "</strong>" : "") + "<p>" +
-      esc(t("pdf-prepared", { date: L.formatDate(L.todayISO()) })) + "</p></div></header>" + body +
-      '<footer class="st-foot"><p>' + esc(t("trust")) + '</p></footer><p class="st-save no-print"><button type="button" class="btn btn-secondary" data-action="close-pdf">' +
+      esc(t("pdf-prepared", { date: L.formatDate(prepared) })) + "</p></div></header>" + body + code +
+      '<p class="st-save no-print"><button type="button" class="btn btn-secondary" data-action="close-pdf">' +
       esc(t("cancel")) + "</button></p></article>";
   }
 
@@ -1765,7 +1815,7 @@ function chip(action, value, label, active) {
           : "<section><h2>" + esc(t("latest")) + "</h2>" + pdfLineTable(rows) + "</section>";
       }
     }
-    return statementShell(model, body);
+    return statementShell(model, body, statementSeal(model, net.income, net.expense, net.net));
   }
 
   function goalStatementHtml(model) {
@@ -1797,7 +1847,32 @@ function chip(action, value, label, active) {
       pdfKpi(t("target-amount"), plainMoney(target), "") +
       pdfKpi("%", L.formatPercent(share), "") +
       "</section>" + (goals.length ? pdfMix(saved, Math.max(0, L.roundMoney(target - saved))) : "") + table;
-    return statementShell(model, body);
+    return statementShell(model, body, statementSeal(model, saved, target, 0));
+  }
+
+  function renderCheck() {
+    var result = state.checkResult;
+    var outcome = "";
+    if (result && result.ok) outcome = checkMatch(result.figures);
+    else if (result) outcome = '<p class="note check-bad">' + esc(t("check-bad")) + "</p>";
+    return "<h1>" + esc(t("check-report")) + '</h1><p class="lede">' + esc(t("check-help")) + "</p>" +
+      '<form id="check-form" class="block"><label class="field">' + esc(t("check-code")) +
+      '<input id="check-code" class="check-code" autocomplete="off" autocapitalize="characters" spellcheck="false" value="' +
+      esc(state.checkCode) + '"></label><div class="row-actions"><button type="submit" class="btn btn-primary">' +
+      esc(t("check-go")) + "</button></div></form>" + outcome;
+  }
+
+  function checkMatch(figures) {
+    var rows = figures.kind === "goals"
+      ? "<p><span>" + esc(t("already-have")) + "</span> <strong>" + esc(plainMoney(figures.a, figures.currency)) + "</strong></p>" +
+        "<p><span>" + esc(t("target-amount")) + "</span> <strong>" + esc(plainMoney(figures.b, figures.currency)) + "</strong></p>"
+      : "<p><span>" + esc(t("money-in")) + "</span> <strong>" + esc(plainMoney(figures.a, figures.currency)) + "</strong></p>" +
+        "<p><span>" + esc(t("money-out")) + "</span> <strong>" + esc(plainMoney(figures.b, figures.currency)) + "</strong></p>" +
+        "<p><span>" + esc(t("you-kept")) + "</span> <strong>" + esc(plainMoney(figures.c, figures.currency)) + "</strong></p>";
+    var day = figures.day ? "<p>" + esc(t("check-day")) + " <strong>" + esc(L.formatDate(figures.day)) + "</strong></p>" : "";
+    return '<section class="card check-result"><p class="check-ok">' + esc(t("check-ok")) + "</p><h2>" +
+      esc(t(figures.titleKey)) + "</h2>" + rows + "<p>" + esc(t("pdf-prepared", { date: L.formatDate(figures.prepared) })) +
+      "</p>" + day + '<p class="lede">' + esc(t("check-compare")) + "</p></section>";
   }
 
   var closeStatement = function () {};
@@ -1823,7 +1898,7 @@ function chip(action, value, label, active) {
     }
     closeStatement = finish;
     window.addEventListener("afterprint", finish);
-    var marks = sheet.querySelectorAll(".st-logo, .st-sun");
+    var marks = sheet.querySelectorAll(".st-logo, .st-sun img");
     var waiting = 0;
     var opened = false;
     function openPrint() {

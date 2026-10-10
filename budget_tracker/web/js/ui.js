@@ -1734,9 +1734,10 @@ function chip(action, value, label, active) {
 
   function statementShell(model, body) {
     var currency = String(state.data.currency || "").trim();
-    return '<article class="statement"><header class="st-head"><div><p class="st-brand">Budget Tracker</p><h1>' +
+    return '<article class="statement"><header class="st-head"><div class="st-id"><img class="st-logo" src="icons/icon.svg" alt=""><div><p class="st-brand">Budget Tracker</p><h1>' +
       esc(model.title) + "</h1>" + (model.period ? '<p class="st-period">' + esc(model.period) + "</p>" : "") +
-      '</div><div class="st-meta">' + (currency ? "<strong>" + esc(currency) + "</strong>" : "") + "<p>" +
+      '</div></div><img class="st-sun" src="img/sun.png" alt=""><div class="st-meta">' +
+      (currency ? "<strong>" + esc(currency) + "</strong>" : "") + "<p>" +
       esc(t("pdf-prepared", { date: L.formatDate(L.todayISO()) })) + "</p></div></header>" + body +
       '<footer class="st-foot"><p>' + esc(t("trust")) + '</p></footer><p class="st-save no-print"><button type="button" class="btn btn-secondary" data-action="close-pdf">' +
       esc(t("cancel")) + "</button></p></article>";
@@ -1822,7 +1823,22 @@ function chip(action, value, label, active) {
     }
     closeStatement = finish;
     window.addEventListener("afterprint", finish);
-    try { window.print(); } catch (e) { finish(); }
+    var marks = sheet.querySelectorAll(".st-logo, .st-sun");
+    var waiting = 0;
+    var opened = false;
+    function openPrint() {
+      if (opened) return;
+      opened = true;
+      try { window.print(); } catch (e) { finish(); }
+    }
+    Array.prototype.forEach.call(marks, function (img) {
+      if (img.complete) return;
+      waiting += 1;
+      img.addEventListener("load", function () { waiting -= 1; if (!waiting) openPrint(); });
+      img.addEventListener("error", function () { waiting -= 1; if (!waiting) openPrint(); });
+    });
+    if (!waiting) openPrint();
+    else setTimeout(openPrint, 700);
   }
 
   function blankDraft() {

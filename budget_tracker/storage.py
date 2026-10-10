@@ -13,6 +13,7 @@ load_data() / save_data() without knowing or caring how storage works.
 import copy
 import json
 import os
+import tempfile
 
 DATA_FILE = os.path.join("data", "budget_data.json")
 
@@ -103,13 +104,25 @@ def save_data(data, filepath=DATA_FILE):
     Creates the containing folder (e.g. 'data/') if it doesn't exist yet.
     Returns True on success, False on failure, so callers can react if needed.
     """
+    folder = os.path.dirname(os.path.abspath(filepath)) or "."
+    tmp = None
     try:
-        folder = os.path.dirname(filepath)
-        if folder and not os.path.exists(folder):
+        if not os.path.exists(folder):
             os.makedirs(folder)
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
+        fd, tmp = tempfile.mkstemp(prefix=".budget-", suffix=".tmp", dir=folder)
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(data, handle, indent=2)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp, filepath)
+        tmp = None
         return True
     except OSError as e:
         print(f"[Error] Could not save data file ({e}). Your changes may be lost.")
         return False
+    finally:
+        if tmp and os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass

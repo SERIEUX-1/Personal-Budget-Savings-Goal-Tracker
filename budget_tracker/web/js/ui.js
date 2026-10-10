@@ -33,7 +33,6 @@
     return (type === "income" ? catalog.income : catalog.expense) || [];
   }
   var RATE_CACHE = "bt-rate-cache";
-  var LOCK_KEY = "bt-lock";
 
   var state = {
     data: null,
@@ -140,7 +139,7 @@
   }
 
   async function persist(message) {
-    if (busy) return false;
+    if (busy || !state.data) return false;
     busy = true;
     try {
       var result = await store.save(state.data);
@@ -928,7 +927,7 @@ function chip(action, value, label, active) {
     var sizes = chip("set-size", "normal", t("size-normal"), size) +
       chip("set-size", "large", t("size-large"), size) +
       chip("set-size", "larger", t("size-larger"), size);
-    var locked = !!localStorage.getItem(LOCK_KEY);
+    var locked = window.BT.vault.hasLock();
     return "<h1>" + esc(t("settings")) + "</h1>" +
       '<section class="block"><h2>' + esc(t("language")) + "</h2>" + languageSearchBox(lang) + "</section>" +
       '<section class="block"><h2>' + esc(t("text-size")) + '</h2><div class="chip-row">' + sizes + "</div></section>" +
@@ -940,6 +939,7 @@ function chip(action, value, label, active) {
       '<section class="block"><h2>' + esc(t("second-title")) + '</h2><p>' + esc(t("second-help")) + "</p>" +
       '<label class="field">' + esc(t("second-title")) + '<input id="second-currency" value="' + esc(second) + '" maxlength="12" placeholder="' + esc(t("second-placeholder")) + '"></label></section>' +
       '<section class="block"><h2>' + esc(t("privacy")) + "</h2><p>" + esc(locked ? t("lock-on") : t("lock-off")) + "</p>" +
+      (locked ? '<p class="trust">' + esc(t("lock-sealed")) + "</p>" : "") +
       '<p class="trust">' + esc(t("trust")) + "</p>" +
       '<p class="trust">' + esc(t("offline-note")) + "</p>" +
       '<div class="row-actions"><button type="button" class="btn btn-primary" data-action="set-lock">' + esc(locked ? t("change-pin") : t("set-pin")) + "</button>" +
@@ -1776,7 +1776,7 @@ function chip(action, value, label, active) {
       if (target.ok && current.ok) addEmergencyGoal(target.value, current.value);
     }
     if (draft.wantLock && /^\d{4}$/.test(draft.pin1) && draft.pin1 === draft.pin2) {
-      localStorage.setItem(LOCK_KEY, await hashPin(draft.pin1));
+      await window.BT.vault.seal(state.data, draft.pin1);
     }
     if (location.hash !== "#menu") location.hash = "menu";
     state.setup = false;
@@ -1868,8 +1868,8 @@ function chip(action, value, label, active) {
       "<p>" + esc(t("change-later")) + "</p>" +
       '<label class="choice"><input id="setup-lock" type="checkbox"' + (draft.wantLock ? " checked" : "") + "> " + esc(t("add-lock")) + "</label>" +
       "<p>" + esc(t("lock-optional")) + "</p>" +
-      '<label class="field">' + esc(t("pin-4")) + '<input id="setup-pin" inputmode="numeric" maxlength="4" value="' + esc(draft.pin1) + '"></label>' +
-      '<label class="field">' + esc(t("pin-again")) + '<input id="setup-pin2" inputmode="numeric" maxlength="4" value="' + esc(draft.pin2) + '"></label>' +
+      '<label class="field">' + esc(t("pin-4")) + '<input id="setup-pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off" value="' + esc(draft.pin1) + '"></label>' +
+      '<label class="field">' + esc(t("pin-again")) + '<input id="setup-pin2" type="password" inputmode="numeric" maxlength="4" autocomplete="off" value="' + esc(draft.pin2) + '"></label>' +
       '<p id="setup-error" class="form-error" role="alert"></p><div class="form-actions">' +
       '<button type="button" class="btn btn-secondary" data-action="setup-skip" data-which="goal">' + esc(t("not-now")) + "</button></div>" +
       setupNav(step) + "</section>";
@@ -1886,18 +1886,34 @@ function chip(action, value, label, active) {
 
   function renderLock() {
     var dots = state.pinEntry ? "••••".slice(0, state.pinEntry.length) : "·";
+    var wait = window.BT.vault.lockedOut();
+    var error = state.lockError || (wait ? t("lock-wait", { n: wait }) : "");
     return '<section class="entry-stage"><p class="trust">' + esc(t("trust")) + "</p><h1>" + esc(t("lock-title")) +
-      '</h1><p class="entry-help">' + esc(t("lock-help")) + '</p><p class="pin-dots" aria-live="polite">' + esc(dots) + "</p>" +
-      (state.lockError ? '<p class="form-error">' + esc(state.lockError) + "</p>" : "") + pinPad() + "</section>";
+      '</h1><p class="entry-help">' + esc(t("lock-help")) + "</p><p>" + esc(t("lock-sealed")) + '</p><p class="pin-dots" aria-live="polite">' + esc(dots) + "</p>" +
+      (error ? '<p class="form-error">' + esc(error) + "</p>" : "") + pinPad() + "</section>";
   }
 
-  async function hashPin(pin) {
-    var data = new TextEncoder().encode("budget-tracker-lock-v1:" + pin);
-    var buf = await crypto.subtle.digest("SHA-256", data);
-    return Array.from(new Uint8Array(buf)).map(function (byte) {
-      var hex = byte.toString(16);
-      return hex.length < 2 ? "0" + hex : hex;
-    }).join("");
+  function pinError(result) {
+    if (result && result.wait) return t("lock-wait", { n: result.wait });
+    return t("wrong-pin");
+  }
+
+  async function unlockWith(pin) {
+    var vault = window.BT.vault;
+    if (vault.lockedOut()) return { ok: false, wait: vault.lockedOut() };
+    if (vault.isSealed()) {
+      var opened = await vault.open(pin);
+      if (!opened.ok) return opened;
+      var held = store.takeHeld();
+      state.data = store.normalize(held || opened.data);
+      if (held) await vault.seal(state.data, pin);
+      return { ok: true };
+    }
+    var legacy = await vault.openLegacy(pin);
+    if (!legacy.ok) return legacy;
+    state.data = store.normalize(store.takeHeld() || store.emptyData());
+    await vault.seal(state.data, pin);
+    return { ok: true };
   }
 
   async function pressDigit(digit) {
@@ -1905,28 +1921,35 @@ function chip(action, value, label, active) {
       await pressSettingsPin(digit);
       return;
     }
+    if (window.BT.vault.lockedOut()) {
+      state.pinEntry = "";
+      state.lockError = t("lock-wait", { n: window.BT.vault.lockedOut() });
+      render();
+      return;
+    }
     if (state.pinEntry.length >= 4) return;
     state.pinEntry += digit;
     state.lockError = "";
     if (state.pinEntry.length < 4) { render(); return; }
-    var hashed = await hashPin(state.pinEntry);
-    if (hashed === localStorage.getItem(LOCK_KEY)) {
+    var pin = state.pinEntry;
+    state.pinEntry = "";
+    var opened = await unlockWith(pin);
+    if (opened.ok && state.data) {
       state.locked = false;
-      state.pinEntry = "";
       state.lockError = "";
       await beginEntry();
       return;
     }
-    state.pinEntry = "";
-    state.lockError = t("wrong-pin");
+    state.lockError = pinError(opened);
     render();
   }
 
   function openPinSetup(removing) {
-    state.pending = { kind: removing ? "remove-pin" : "set-pin", first: "" };
+    var needCurrent = !removing && window.BT.vault.hasLock();
+    state.pending = { kind: removing ? "remove-pin" : "set-pin", first: "", needCurrent: needCurrent };
     state.pinEntry = "";
-    openModal("<h2>" + esc(removing ? t("remove-pin") : t("set-pin")) + "</h2><p>" +
-      esc(removing ? t("lock-help") : t("pin-4")) + '</p><p id="pin-dots" class="pin-dots">·</p><p id="form-error" class="form-error" role="alert"></p>' + pinPad());
+    openModal("<h2>" + esc(removing ? t("remove-pin") : (needCurrent ? t("change-pin") : t("set-pin"))) + "</h2><p>" +
+      esc(removing || needCurrent ? t("lock-help") : t("pin-4")) + '</p><p id="pin-dots" class="pin-dots">·</p><p id="form-error" class="form-error" role="alert"></p>' + pinPad());
   }
 
   async function pressSettingsPin(digit) {
@@ -1936,17 +1959,38 @@ function chip(action, value, label, active) {
     var dots = document.getElementById("pin-dots");
     if (dots) dots.textContent = "••••".slice(0, state.pinEntry.length);
     if (state.pinEntry.length < 4) return;
-    var hashed = await hashPin(state.pinEntry);
-    if (pending.kind === "remove-pin") {
-      if (hashed !== localStorage.getItem(LOCK_KEY)) {
-        state.pinEntry = "";
-        showError(t("wrong-pin"));
+    var pin = state.pinEntry;
+    if (pending.needCurrent) {
+      state.pinEntry = "";
+      var current = window.BT.vault.isSealed()
+        ? await window.BT.vault.open(pin)
+        : await window.BT.vault.openLegacy(pin);
+      if (!current.ok) {
+        showError(pinError(current));
         if (dots) dots.textContent = "·";
         return;
       }
-      localStorage.removeItem(LOCK_KEY);
+      pending.needCurrent = false;
+      if (dots) dots.textContent = "·";
+      var heading = document.querySelector("#modal-root h2");
+      var help = document.querySelector("#modal-root p");
+      if (heading) heading.textContent = t("pin-4");
+      if (help) help.textContent = t("pin-4");
+      return;
+    }
+    if (pending.kind === "remove-pin") {
       state.pinEntry = "";
+      var opened = window.BT.vault.isSealed()
+        ? await window.BT.vault.open(pin)
+        : await window.BT.vault.openLegacy(pin);
+      if (!opened.ok) {
+        showError(pinError(opened));
+        if (dots) dots.textContent = "·";
+        return;
+      }
+      window.BT.vault.clear();
       closeModal();
+      await persist("");
       render();
       return;
     }
@@ -1965,8 +2009,13 @@ function chip(action, value, label, active) {
       if (dots) dots.textContent = "·";
       return;
     }
-    localStorage.setItem(LOCK_KEY, hashed);
+    var chosen = state.pinEntry;
     state.pinEntry = "";
+    if (!(await window.BT.vault.seal(state.data, chosen))) {
+      showError(t("save-fail"));
+      if (dots) dots.textContent = "·";
+      return;
+    }
     closeModal();
     toast(t("lock-on"));
     render();
@@ -2154,6 +2203,10 @@ function chip(action, value, label, active) {
 
   function stageImport(file) {
     if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast(t("save-fail"));
+      return;
+    }
     var reader = new FileReader();
     reader.onload = function () {
       try {
@@ -2395,14 +2448,16 @@ function chip(action, value, label, active) {
     if (savedLang) window.BT.i18n.set(savedLang);
     try {
       var loaded = await store.load();
-      state.data = loaded.data;
       state.mode = loaded.mode;
-      if (savedLang && !state.data.language) state.data.language = savedLang;
-      if (localStorage.getItem(LOCK_KEY)) {
+      if (loaded.sealed) {
+        state.data = null;
         state.locked = true;
         state.pinEntry = "";
+        state.lockError = "";
         render();
       } else {
+        state.data = loaded.data;
+        if (savedLang && !state.data.language) state.data.language = savedLang;
         await beginEntry();
       }
     } catch (err) {

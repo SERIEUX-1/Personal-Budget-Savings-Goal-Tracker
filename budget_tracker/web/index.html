@@ -6,6 +6,8 @@
   <meta name="theme-color" content="#e7edf3">
   <meta name="description" content="Track income, expenses, and savings goals. See where your money comes from, where it goes, and how close you are to your goals.">
   <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://api.frankfurter.dev; manifest-src 'self'; worker-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Budget Tracker">
   <title>Budget Tracker</title>
@@ -77,6 +79,7 @@
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
   <section id="print-sheet" hidden></section>
   <script src="js/logic.js"></script>
+  <script src="js/vault.js"></script>
   <script src="js/store.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/i18n-world.js"></script>

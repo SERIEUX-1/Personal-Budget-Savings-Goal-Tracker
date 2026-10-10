@@ -173,6 +173,8 @@
     "remove-pin": "Die Sperre entfernen",
     "change-pin": "Die Sperre ändern",
     "lock-on": "Für dieses Telefon ist eine Sperre an.",
+    "lock-sealed": "Ihre Einträge sind auf diesem Telefon unlesbar, bis die Zahlen stimmen.",
+    "lock-wait": "Warten Sie {n} Sekunden und versuchen Sie es erneut.",
     "lock-off": "Noch keine Sperre. Nützlich, wenn das Telefon geteilt wird.",
     "saved-of": "{have} von {need} zur Seite gelegt",
     still: "Noch {amount} zur Seite zu legen.",

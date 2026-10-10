@@ -56,6 +56,8 @@
   ];
 
   var mode = "browser";
+  var heldRemote = null;
+  var heldLocal = null;
 
   BT.categories = {
     income: INCOME_CATEGORIES,
@@ -133,7 +135,7 @@
         category: String(t.category || "Uncategorised"),
         amount: BT.logic.roundMoney(t.amount),
         date: t.date,
-        description: String(t.description || ""),
+        description: String(t.description || "").slice(0, 2000),
         currency_code: typeof t.currency_code === "string" ? t.currency_code : ""
       };
     });
@@ -145,15 +147,15 @@
       if (current < 0) current = 0;
       return {
         id: Number(g.id) || 0,
-        name: String(g.name).trim(),
+        name: String(g.name).trim().slice(0, 200),
         goal_category: String(g.goal_category || ""),
         goal_type: g.goal_type === "smart" ? "smart" : "normal",
         target_amount: BT.logic.roundMoney(g.target_amount),
         current_amount: current,
         deadline: g.deadline,
-        specific_detail: String(g.specific_detail || ""),
+        specific_detail: String(g.specific_detail || "").slice(0, 2000),
         monthly_contribution: BT.logic.roundMoney(Math.max(0, Number(g.monthly_contribution) || 0)),
-        relevance_reason: String(g.relevance_reason || ""),
+        relevance_reason: String(g.relevance_reason || "").slice(0, 2000),
         goal_kind: g.goal_kind === "emergency" ? "emergency" : ""
       };
     });
@@ -239,13 +241,36 @@
     return response.ok;
   }
 
+  function takeHeld() {
+    var data = heldRemote || heldLocal;
+    heldRemote = null;
+    heldLocal = null;
+    return data;
+  }
+
   async function load() {
-    var local = readLocal();
+    heldRemote = null;
+    heldLocal = null;
     var remote = null;
     try {
       remote = await fetchRemote();
     } catch (e) {
       remote = null;
+    }
+
+    var vault = BT.vault;
+    var locked = !!(vault && vault.hasLock());
+    var sealed = !!(vault && vault.isSealed());
+    var local = sealed ? null : readLocal();
+
+    if (locked) {
+      mode = remote ? "file" : "browser";
+      if (!sealed) heldLocal = local;
+      if (remote && !(heldLocal && isDirty())) {
+        heldLocal = null;
+        heldRemote = remote;
+      }
+      return { data: null, mode: mode, sealed: true };
     }
 
     if (remote && local && isDirty()) {
@@ -254,7 +279,7 @@
         setDirty(false);
         mode = "file";
         writeLocal(local);
-        return { data: local, mode: mode };
+        return { data: local, mode: mode, sealed: false };
       }
     }
 
@@ -262,12 +287,12 @@
       mode = "file";
       setDirty(false);
       writeLocal(remote);
-      return { data: remote, mode: mode };
+      return { data: remote, mode: mode, sealed: false };
     }
 
     mode = "browser";
-    if (local) return { data: local, mode: mode };
-    return { data: emptyData(), mode: mode };
+    if (local) return { data: local, mode: mode, sealed: false };
+    return { data: emptyData(), mode: mode, sealed: false };
   }
 
   function looksLikeSample(data) {
@@ -283,8 +308,16 @@
   }
 
   async function save(data) {
+    if (!data) return { ok: false, where: "locked" };
     data.updated_at = new Date().toISOString();
-    var localOk = writeLocal(data);
+    var localOk = false;
+    if (BT.vault && BT.vault.active()) {
+      localOk = await BT.vault.write(data);
+    } else if (BT.vault && BT.vault.isSealed()) {
+      return { ok: false, where: "locked" };
+    } else {
+      localOk = writeLocal(data);
+    }
     if (mode === "file") {
       var ok = await putRemote(data);
       setDirty(!ok);
@@ -314,6 +347,7 @@
     emptyData: emptyData,
     normalize: normalize,
     load: load,
+    takeHeld: takeHeld,
     save: save,
     exampleData: exampleData,
     needsSetup: needsSetup,

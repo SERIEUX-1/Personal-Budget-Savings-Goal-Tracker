@@ -842,7 +842,7 @@ body.is-locked .topbar { display: none; }
 .entry-stage .pin-pad { margin-left: auto; margin-right: auto; }
 .entry-stage .pin-dots { text-align: center; }
 #print-sheet { display: none; }
-body.is-printing { background: #e7edf3; }
+body.is-printing { background: #fff; }
 body.is-printing .app-shell,
 body.is-printing .tabbar,
 body.is-printing .dock-turn,
@@ -854,17 +854,17 @@ body.is-printing .skip,
 body.is-printing .modal-backdrop { display: none !important; }
 body.is-printing #print-sheet {
   display: block;
-  min-height: 100vh;
-  padding: 28px 16px 72px;
-  background: #e7edf3;
+  min-height: 0;
+  padding: 24px 16px 48px;
+  background: #fff;
 }
 .statement {
   max-width: 780px;
   margin: 0 auto;
   background: #fff;
-  color: #141821;
+  color: #000;
   padding: 36px 40px 28px;
-  box-shadow: 0 16px 40px rgba(20, 24, 33, 0.08);
+  box-shadow: none;
 }
 .st-id {
   display: flex;
@@ -892,16 +892,16 @@ body.is-printing #print-sheet {
   right: 0;
   top: 50%;
   transform: translateY(-50%);
-  color: #fff;
+  color: #000;
   font-size: 15px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
-  text-shadow: 0 1px 2px rgba(60, 20, 0, 0.85);
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;
 }
 .st-brand {
   margin: 0 0 6px;
-  color: #141821;
+  color: #000;
   font-size: 16px;
   font-weight: 700;
   letter-spacing: 0;
@@ -914,26 +914,26 @@ body.is-printing #print-sheet {
   gap: 24px;
   position: relative;
   padding: 0 76px 18px 0;
-  border-bottom: 3px double #141821;
+  border-bottom: 1px solid #000;
 }
 .statement h1 {
   margin: 0;
-  color: #141821;
+  color: #000;
   font-size: 28px;
   line-height: 1.2;
   font-weight: 700;
   letter-spacing: 0;
 }
-.st-period { margin: 8px 0 0; color: #141821; font-size: 16px; }
+.st-period { margin: 8px 0 0; color: #000; font-size: 16px; }
 .st-seal {
   margin: 28px 0 0;
   padding: 14px 16px;
-  border: 1px solid #141821;
+  border: 1px solid #000;
   background: #fff;
 }
 .st-seal span {
   display: block;
-  color: #141821;
+  color: #000;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
@@ -942,7 +942,7 @@ body.is-printing #print-sheet {
 .st-seal strong {
   display: block;
   margin-top: 6px;
-  color: #141821;
+  color: #000;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-size: 16px;
   font-weight: 700;
@@ -958,8 +958,8 @@ body.is-printing #print-sheet {
 .check-ok { color: #0c8f5b; font-weight: 600; }
 .check-result p { margin: 8px 0; }
 .check-result strong { font-variant-numeric: tabular-nums; }
-.st-meta { text-align: end; color: #141821; font-size: 15px; }
-.st-meta strong { display: block; color: #141821; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+.st-meta { text-align: end; color: #000; font-size: 15px; }
+.st-meta strong { display: block; color: #000; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
 .st-meta p { margin: 0; }
 .st-kpis {
   display: grid;
@@ -969,16 +969,13 @@ body.is-printing #print-sheet {
 }
 .st-kpi {
   padding: 14px 16px 12px;
-  border: 1px solid #d5dde6;
-  border-top: 3px solid #141821;
+  border: 1px solid #000;
   background: #fff;
 }
-.st-kpi.is-in { border-top-color: #12a36a; }
-.st-kpi.is-out { border-top-color: #e25b45; }
 .st-kpi span {
   display: block;
   margin: 0 0 8px;
-  color: #141821;
+  color: #000;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: 0;
@@ -986,17 +983,17 @@ body.is-printing #print-sheet {
 }
 .st-kpi strong {
   display: block;
-  color: #141821;
+  color: #000;
   font-size: 26px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
   line-height: 1.15;
 }
-.st-kpi.is-in strong, .st-table .is-in { color: #0a7a4e; }
-.st-kpi.is-out strong, .st-table .is-out { color: #c2412d; }
+.st-kpi.is-in strong, .st-table .is-in,
+.st-kpi.is-out strong, .st-table .is-out { color: #000; }
 .st-mix {
-  display: flex;
+  display: none;
   height: 10px;
   margin: 4px 0 6px;
   overflow: hidden;
@@ -1031,19 +1028,19 @@ body.is-printing #print-sheet {
   margin: 26px 0 10px;
   padding: 0 0 6px;
   border: 0;
-  border-bottom: 2px solid #141821;
-  color: #141821;
+  border-bottom: 1px solid #000;
+  color: #000;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 0;
   text-transform: none;
 }
-.st-table { width: 100%; border-collapse: collapse; color: #141821; }
+.st-table { width: 100%; border-collapse: collapse; color: #000; background: #fff; }
 .st-table th {
   padding: 10px;
-  background: #e7edf3;
-  border-bottom: 2px solid #141821;
-  color: #141821;
+  background: #fff;
+  border-bottom: 1px solid #000;
+  color: #000;
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0;
@@ -1052,22 +1049,22 @@ body.is-printing #print-sheet {
 }
 .st-table td {
   padding: 10px;
-  border-bottom: 1px solid #c5d0db;
-  color: #141821;
+  border-bottom: 1px solid #000;
+  color: #000;
   vertical-align: top;
   font-size: 16px;
 }
-.st-table tbody tr:nth-child(even) td { background: #f7f9fb; }
+.st-table tbody tr:nth-child(even) td { background: #fff; }
 .st-table .num { font-variant-numeric: tabular-nums; text-align: end; white-space: nowrap; }
 .st-table tfoot td {
   background: #fff;
   border-bottom: 0;
-  border-top: 2px solid #141821;
+  border-top: 1px solid #000;
   font-weight: 700;
   padding-top: 10px;
 }
 .st-track {
-  display: block;
+  display: none;
   height: 4px;
   max-width: 220px;
   margin-top: 6px;
@@ -1077,7 +1074,7 @@ body.is-printing #print-sheet {
 .st-track i { display: block; height: 100%; border-radius: 99px; }
 .st-track .is-in { background: #12a36a; }
 .st-track .is-out { background: #e25b45; }
-.st-note { margin: 4px 0 0; color: #141821; font-size: 15px; }
+.st-note { margin: 4px 0 0; color: #000; font-size: 15px; }
 .st-foot {
   margin-top: 28px;
   padding-top: 10px;
@@ -1199,15 +1196,15 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
 
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { margin: 16mm; }
   html, body, body.is-printing {
     min-height: 0 !important;
     height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     background: #fff !important;
-    color: #141821 !important;
-    color-scheme: only light !important;
+    color: #000 !important;
+    color-scheme: light only !important;
   }
   body > * { display: none !important; }
   body > #print-sheet,
@@ -1221,6 +1218,8 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
   }
   .no-print,
   .st-save,
+  .st-mix,
+  .st-track,
   .step-head,
   .step-actions,
   .page-turn,
@@ -1235,34 +1234,34 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
     padding: 0 !important;
     height: 0 !important;
   }
-  .statement, .st-kpi, .st-seal, .st-table, .st-table td, .st-table tfoot td {
+  .statement,
+  .statement * {
     background: #fff !important;
-    color: #141821 !important;
+    color: #000 !important;
     box-shadow: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+  }
+  .st-sun,
+  .st-sun img,
+  .st-logo {
+    background: transparent !important;
+  }
+  .st-sun-name {
+    color: #000 !important;
+    text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff !important;
   }
   .statement {
     max-width: none;
     margin: 0 !important;
     padding: 0 !important;
   }
-  .st-table th {
-    background: #e7edf3 !important;
-    color: #141821 !important;
-  }
-  .st-table tbody tr:nth-child(even) td { background: #f4f7fa !important; }
-  .statement h1 { font-size: 20pt; color: #141821 !important; }
-  .statement h2 { font-size: 14pt; color: #141821 !important; }
-  .st-brand, .st-meta, .st-meta p, .st-period, .st-kpi span, .st-note, .st-seal span, .st-seal strong {
-    color: #141821 !important;
-  }
-  .st-kpi strong { font-size: 16pt; color: #141821 !important; }
+  .statement h1 { font-size: 20pt; }
+  .statement h2 { font-size: 14pt; }
+  .st-kpi strong { font-size: 16pt; }
   .st-table td, .st-table tfoot td { font-size: 12pt; }
   .st-table th { font-size: 11pt; }
-  .st-kpi.is-in strong, .st-table .is-in { color: #0a7a4e !important; }
-  .st-kpi.is-out strong, .st-table .is-out { color: #b42318 !important; }
-  .st-mix .is-in { background: #12a36a !important; }
-  .st-mix .is-out { background: #e25b45 !important; }
-  .statement, .st-kpi, .st-table th, .st-table td, .st-seal, .st-mix, .st-mix i, .st-logo, .st-sun, .st-sun-name {
+  .statement, .st-kpi, .st-table, .st-table th, .st-table td, .st-seal, .st-logo, .st-sun, .st-sun-name {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

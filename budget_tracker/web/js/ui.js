@@ -558,13 +558,13 @@ function chip(action, value, label, active) {
     var next = near.next
       ? '<button type="button" class="btn btn-primary" data-action="nav" data-page="' + near.next + '">' + esc(t("page-next")) + "</button>"
       : "<span></span>";
-    return '<div class="step-actions">' + prev + next + "</div>";
+    return '<div class="step-actions no-print">' + prev + next + "</div>";
   }
 
   function withStep(body) {
     var near = neighbors();
     if (near.index < 0) return body;
-    return '<section class="step-head"><p class="eyebrow">' + esc(t("step-of", { n: near.index + 1, total: TURN.length })) +
+    return '<section class="step-head no-print"><p class="eyebrow">' + esc(t("step-of", { n: near.index + 1, total: TURN.length })) +
       "</p><h1>" + esc(pageTitle(state.page)) + '</h1><p class="lede">' + esc(t(STEP_HINT[state.page] || "menu-lead")) +
       "</p>" + stepButtons() + "</section>" + body;
   }

@@ -1112,13 +1112,25 @@ body.is-entry .guide { bottom: calc(76px + env(safe-area-inset-bottom)); }
 
 @media print {
   @page { size: A4; margin: 14mm 14mm 16mm; }
-  .sidebar, .tabbar, .topbar, .no-print, .modal-backdrop, .sun-mark, .ask-fab, .guide, .st-save { display: none !important; }
-  body, body.is-printing, body.is-printing #print-sheet { background: #fff; }
-  body.is-printing #print-sheet {
+  body > * { display: none !important; }
+  body > #print-sheet {
     display: block !important;
-    min-height: 0;
-    padding: 0;
+    min-height: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
   }
+  .no-print,
+  .st-save,
+  .step-head,
+  .step-actions,
+  .page-turn,
+  .sidebar,
+  .tabbar,
+  .topbar,
+  .ask-fab,
+  .guide,
+  .sun-mark { display: none !important; }
+  body, #print-sheet { background: #fff !important; }
   .statement {
     max-width: none;
     margin: 0;

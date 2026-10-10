@@ -222,6 +222,8 @@
     "by-category": "Nach Kategorie",
     "goal-progress": "Fortschritt der Ziele",
     "print-report": "Diesen Bericht drucken",
+    "download-pdf": "PDF herunterladen",
+    "pdf-prepared": "Erstellt am {date}",
     "show-older": "Ältere Zeiträume zeigen",
     "record-count": "{n} Einträge",
     "no-spending": "Noch keine Ausgabe eingetragen.",

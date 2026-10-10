@@ -602,7 +602,8 @@ function chip(action, value, label, active) {
         esc(state.txFilter.start) + '"></label><label class="field">' + esc(t("to")) + '<input id="tx-end" type="date" value="' +
         esc(state.txFilter.end) + '"></label></div>'
       : "";
-    return withStep('<p class="lede">' + esc(t("records-match", { n: list.length })) + "</p>" + filters +
+    var pdf = mode === "view" || mode === "search" ? pdfButton() : "";
+    return withStep(pdf + '<p class="lede">' + esc(t("records-match", { n: list.length })) + "</p>" + filters +
       '<div id="tx-list">' + (list.length ? txCards(list, mode) : '<p class="note note-plain">' + esc(t("nothing-matches")) + "</p>") + "</div>");
   }
 
@@ -625,7 +626,8 @@ function chip(action, value, label, active) {
       ? '<div class="filters no-print"><label class="field">' + esc(t("search")) + '<input id="goal-search" value="' + esc(f.query) +
         '"></label><label class="field">' + esc(t("category")) + '<select id="goal-category-filter">' + cats + "</select></label></div>"
       : "";
-    return withStep('<p class="lede">' + esc(t("goals-lead")) + "</p>" + filters +
+    var pdf = mode === "view" || mode === "search" ? pdfButton() : "";
+    return withStep(pdf + '<p class="lede">' + esc(t("goals-lead")) + "</p>" + filters +
       '<div id="goal-list">' + goalListHtml(mode) + "</div>");
   }
 
@@ -651,9 +653,7 @@ function chip(action, value, label, active) {
           : which === "category"
             ? renderCategoryReport()
             : renderGoalReport();
-    return withStep('<div class="row-actions no-print"><button type="button" class="btn btn-secondary" data-action="share-page">' + esc(t("one-page")) +
-      '</button><button type="button" class="btn btn-secondary" data-action="print">' + esc(t("print-report")) + "</button></div>" +
-      body);
+    return withStep(pdfButton() + body);
   }
 
   function renderReports() {
@@ -676,8 +676,7 @@ function chip(action, value, label, active) {
       '<div class="seg no-print" role="tablist">' + tabs.map(function (item) {
         return chip("report-tab", item[0], item[1], tab);
       }).join("") + "</div>" +
-      '<div class="row-actions no-print"><button type="button" class="btn btn-secondary" data-action="share-page">' + esc(t("one-page")) +
-      '</button><button type="button" class="btn btn-secondary" data-action="print">' + esc(t("print-report")) + "</button></div>" +
+      pdfButton() +
       body;
   }
 
@@ -1261,7 +1260,6 @@ function chip(action, value, label, active) {
       return;
     }
     if (action === "hear") { speak(homeSpeech()); return; }
-    if (action === "share-page") { sharePage(); return; }
     if (action === "open-today") { openToday(); return; }
     if (action === "start-own") { beginSetup(); return; }
     if (action === "look-example") { useExample(); return; }
@@ -1333,7 +1331,8 @@ function chip(action, value, label, active) {
       render();
       return;
     }
-    if (action === "print") { window.print(); return; }
+    if (action === "print" || action === "download-pdf" || action === "share-page") { downloadStatement(); return; }
+    if (action === "close-pdf") { closeStatement(); return; }
     if (action === "add-tx") { openTx(null, btn.dataset.type); return; }
     if (action === "edit-tx") { openTx(findById(state.data.transactions, Number(btn.dataset.id))); return; }
     if (action === "delete-tx") { askDeleteTx(Number(btn.dataset.id)); return; }
@@ -1574,30 +1573,256 @@ function chip(action, value, label, active) {
     rec.start();
   }
 
-  function sharePage() {
-    var month = L.currentMonth();
-    var rows = pots(state.data.transactions.filter(function (row) {
-      return row.date.slice(0, 7) === month;
-    })).main;
-    var summary = L.summarize(rows);
-    var net = L.netOf(summary);
-    var goals = state.data.goals.map(function (goal) {
-      var line = esc(goal.name) + ": " + esc(plainMoney(goal.current_amount)) + " / " + esc(plainMoney(goal.target_amount));
-      if (isEmergency(goal)) line += " · " + esc(t("days-line", { n: L.daysCovered(goal) }));
-      return "<p>" + line + "</p>";
+  function pdfButton() {
+    return '<div class="row-actions no-print"><button type="button" class="btn btn-primary" data-action="download-pdf">' + esc(t("download-pdf")) + "</button></div>";
+  }
+
+  function selectedDay() {
+    var rows = pots(state.data.transactions).main;
+    var summary = L.buildPeriodSummary(rows, function (row) { return row.date; });
+    var days = Object.keys(summary).sort().reverse();
+    if (state.report.day && /^\d{4}-\d{2}-\d{2}$/.test(state.report.day)) return state.report.day;
+    return days[0] || L.todayISO();
+  }
+
+  function goalStatementList() {
+    if (state.page !== "goal-search") return state.data.goals.slice();
+    var f = state.goalFilter;
+    var query = f.query.trim().toLowerCase();
+    return state.data.goals.filter(function (goal) {
+      if (f.category && goal.goal_category !== f.category) return false;
+      if (!query) return true;
+      return (goal.name + " " + goal.goal_category).toLowerCase().indexOf(query) !== -1;
+    });
+  }
+
+  function statementModel() {
+    var page = state.page;
+    if (page === "progress" || page === "goals" || page === "goal-search") {
+      return { kind: "goals", title: pageTitle(page), period: "", goals: goalStatementList() };
+    }
+    if (page === "day") {
+      var picked = selectedDay();
+      return {
+        kind: "money",
+        title: pageTitle("day"),
+        period: L.formatDate(picked),
+        rows: pots(state.data.transactions).main.filter(function (row) { return row.date === picked; }),
+        lines: true
+      };
+    }
+    if (page === "category") {
+      return { kind: "money", title: pageTitle("category"), period: "", rows: pots(state.data.transactions).main, lines: false };
+    }
+    if (page === "days") {
+      return {
+        kind: "money",
+        title: pageTitle("days"),
+        period: "",
+        rows: pots(state.data.transactions).main,
+        groupBy: function (row) { return row.date; },
+        groupLabel: function (key) { return L.formatDate(key); },
+        groupTitle: t("by-day"),
+        lines: true
+      };
+    }
+    if (page === "month") {
+      return {
+        kind: "money",
+        title: pageTitle("month"),
+        period: "",
+        rows: pots(state.data.transactions).main,
+        groupBy: function (row) { return row.date.slice(0, 7); },
+        groupLabel: function (key) { return L.formatMonth(key); },
+        groupTitle: t("by-month"),
+        lines: true
+      };
+    }
+    if (page === "tx-search") {
+      return { kind: "money", title: pageTitle("tx-search"), period: "", rows: filteredTx(), lines: true };
+    }
+    if (page === "tx") {
+      return { kind: "money", title: pageTitle("tx"), period: "", rows: state.data.transactions.slice(), lines: true };
+    }
+    var view = homePeriod();
+    return { kind: "money", title: view.label, period: "", rows: pots(view.rows).main, lines: true };
+  }
+
+  function pdfKpi(label, value, cls) {
+    return "<div><span>" + esc(label) + "</span><strong" + (cls ? ' class="' + cls + '"' : "") + ">" + esc(value) + "</strong></div>";
+  }
+
+  function widthClass(part, total) {
+    var pct = total > 0 ? (part / total) * 100 : 0;
+    if (!isFinite(pct) || pct < 0) pct = 0;
+    if (pct > 100) pct = 100;
+    return "st-w-" + (Math.round(pct / 5) * 5);
+  }
+
+  function pdfTrack(part, total, kind) {
+    return '<span class="st-track"><i class="is-' + kind + " " + widthClass(part, total) + '"></i></span>';
+  }
+
+  function pdfMix(income, expense) {
+    var total = income + expense;
+    if (!(total > 0)) return "";
+    return '<div class="st-mix" aria-hidden="true"><i class="is-in ' + widthClass(income, total) +
+      '"></i><i class="is-out ' + widthClass(expense, total) + '"></i></div>';
+  }
+
+  function pdfCatTable(title, categories, total, kind) {
+    var entries = L.sortedEntries(categories || {});
+    if (!entries.length) return "";
+    var body = entries.map(function (pair) {
+      var share = total > 0 ? (pair[1] / total) * 100 : 0;
+      return "<tr><td>" + esc(pair[0]) + pdfTrack(pair[1], total, kind) + '</td><td class="num">' +
+        esc(L.formatPercent(share)) + '</td><td class="num">' + esc(plainMoney(pair[1])) + "</td></tr>";
     }).join("");
+    var amount = kind === "income" ? t("money-in") : t("money-out");
+    return "<section><h2>" + esc(title) + '</h2><table class="st-table"><thead><tr><th>' + esc(t("category")) +
+      '</th><th class="num">%</th><th class="num">' + esc(amount) + "</th></tr></thead><tbody>" + body + "</tbody></table></section>";
+  }
+
+  function pdfLineTable(rows) {
+    var sorted = rows.slice().sort(sortTx);
+    if (!sorted.length) return '<p class="st-note">' + esc(t("no-records")) + "</p>";
+    var body = sorted.map(function (row) {
+      var code = row.currency_code || "";
+      var inn = row.type === "income" ? plainMoney(row.amount, code || undefined) : "";
+      var out = row.type === "expense" ? plainMoney(row.amount, code || undefined) : "";
+      var about = esc(row.category);
+      if (row.description) about += '<p class="st-note">' + esc(row.description) + "</p>";
+      if (code) about += '<p class="st-note">' + esc(code) + "</p>";
+      return "<tr><td>" + esc(L.formatDate(row.date)) + "</td><td>" + about + '</td><td class="num is-in">' +
+        esc(inn) + '</td><td class="num is-out">' + esc(out) + "</td></tr>";
+    }).join("");
+    var main = sorted.filter(function (row) { return !row.currency_code; });
+    var net = L.netOf(L.summarize(main));
+    var kept = net.net < 0 ? "num is-out" : "num";
+    return '<table class="st-table st-lines"><thead><tr><th>' + esc(t("date")) + "</th><th>" + esc(t("category")) +
+      '</th><th class="num">' + esc(t("money-in")) + '</th><th class="num">' + esc(t("money-out")) +
+      '</th></tr></thead><tbody>' + body + '</tbody><tfoot><tr><td colspan="2">' + esc(t("you-kept")) +
+      '</td><td class="' + kept + '" colspan="2">' + esc(plainMoney(net.net)) + "</td></tr></tfoot></table>";
+  }
+
+  function pdfPeriodTable(rows, groupBy, groupLabel, title) {
+    var grouped = L.buildPeriodSummary(rows, groupBy);
+    var keys = Object.keys(grouped).sort().reverse();
+    if (keys.length < 2) return "";
+    var body = keys.map(function (key) {
+      var net = L.netOf(grouped[key]);
+      var kept = net.net < 0 ? "num is-out" : "num";
+      return "<tr><td>" + esc(groupLabel(key)) + '</td><td class="num is-in">' + esc(plainMoney(net.income)) +
+        '</td><td class="num is-out">' + esc(plainMoney(net.expense)) + '</td><td class="' + kept + '">' +
+        esc(plainMoney(net.net)) + "</td></tr>";
+    }).join("");
+    var all = L.netOf(L.summarize(rows));
+    return "<section><h2>" + esc(title) + '</h2><table class="st-table"><thead><tr><th>' + esc(t("date")) +
+      '</th><th class="num">' + esc(t("money-in")) + '</th><th class="num">' + esc(t("money-out")) +
+      '</th><th class="num">' + esc(t("you-kept")) + "</th></tr></thead><tbody>" + body +
+      '</tbody><tfoot><tr><td></td><td class="num">' + esc(plainMoney(all.income)) + '</td><td class="num">' +
+      esc(plainMoney(all.expense)) + '</td><td class="num">' + esc(plainMoney(all.net)) + "</td></tr></tfoot></table></section>";
+  }
+
+  function pdfGroupedLines(rows, groupBy, groupLabel) {
+    var grouped = L.buildPeriodSummary(rows, groupBy);
+    return Object.keys(grouped).sort().reverse().map(function (key) {
+      var list = rows.filter(function (row) { return groupBy(row) === key; });
+      return "<section><h2>" + esc(groupLabel(key)) + "</h2>" + pdfLineTable(list) + "</section>";
+    }).join("");
+  }
+
+  function statementShell(model, body) {
+    var currency = String(state.data.currency || "").trim();
+    return '<article class="statement"><header class="st-head"><div><p class="st-brand">Budget Tracker</p><h1>' +
+      esc(model.title) + "</h1>" + (model.period ? '<p class="st-period">' + esc(model.period) + "</p>" : "") +
+      '</div><div class="st-meta">' + (currency ? "<strong>" + esc(currency) + "</strong>" : "") + "<p>" +
+      esc(t("pdf-prepared", { date: L.formatDate(L.todayISO()) })) + "</p></div></header>" + body +
+      '<footer class="st-foot"><p>' + esc(t("trust")) + '</p></footer><p class="st-save no-print"><button type="button" class="btn btn-secondary" data-action="close-pdf">' +
+      esc(t("cancel")) + "</button></p></article>";
+  }
+
+  function moneyStatementHtml(model) {
+    var rows = model.rows || [];
+    var main = rows.filter(function (row) { return !row.currency_code; });
+    var summary = L.summarize(main);
+    var net = L.netOf(summary);
+    var body = '<section class="st-kpis">' +
+      pdfKpi(t("money-in"), plainMoney(net.income), "is-in") +
+      pdfKpi(t("money-out"), plainMoney(net.expense), "is-out") +
+      pdfKpi(t("you-kept"), plainMoney(net.net), net.net < 0 ? "is-out" : "") +
+      "</section>" + pdfMix(net.income, net.expense);
+    if (!rows.length) {
+      body += '<p class="st-note">' + esc(t("no-records")) + "</p>";
+    } else {
+      if (model.groupBy) body += pdfPeriodTable(main, model.groupBy, model.groupLabel, model.groupTitle);
+      body += pdfCatTable(t("money-in"), summary.income_categories, summary.income_total, "income");
+      body += pdfCatTable(t("where-goes"), summary.expense_categories, summary.expense_total, "expense");
+      if (model.lines !== false) {
+        body += model.groupBy
+          ? pdfGroupedLines(rows, model.groupBy, model.groupLabel)
+          : "<section><h2>" + esc(t("latest")) + "</h2>" + pdfLineTable(rows) + "</section>";
+      }
+    }
+    return statementShell(model, body);
+  }
+
+  function goalStatementHtml(model) {
+    var goals = model.goals || [];
+    var saved = 0;
+    var target = 0;
+    goals.forEach(function (goal) {
+      saved += Number(goal.current_amount) || 0;
+      target += Number(goal.target_amount) || 0;
+    });
+    saved = L.roundMoney(saved);
+    target = L.roundMoney(target);
+    var share = target > 0 ? (saved / target) * 100 : 0;
+    var table = goals.length
+      ? '<table class="st-table"><thead><tr><th>' + esc(t("goal-name")) + '</th><th class="num">%</th><th class="num">' +
+        esc(t("already-have")) + '</th><th class="num">' + esc(t("target-amount")) + "</th><th>" + esc(t("date")) +
+        "</th></tr></thead><tbody>" + goals.map(function (goal) {
+          var pace = L.goalPace(goal, L.todayISO());
+          var note = "";
+          if (isEmergency(goal)) note = '<p class="st-note">' + esc(t("days-line", { n: L.daysCovered(goal) })) + "</p>";
+          else if (goal.specific_detail) note = '<p class="st-note">' + esc(goal.specific_detail) + "</p>";
+          return "<tr><td>" + esc(goal.name) + note + pdfTrack(pace.percent, 100, "in") + '</td><td class="num">' +
+            esc(L.formatPercent(pace.percent)) + '</td><td class="num">' + esc(plainMoney(goal.current_amount)) +
+            '</td><td class="num">' + esc(plainMoney(goal.target_amount)) + "</td><td>" + esc(L.formatDate(goal.deadline)) + "</td></tr>";
+        }).join("") + "</tbody></table>"
+      : '<p class="st-note">' + esc(t("no-records")) + "</p>";
+    var body = '<section class="st-kpis">' +
+      pdfKpi(t("already-have"), plainMoney(saved), "is-in") +
+      pdfKpi(t("target-amount"), plainMoney(target), "") +
+      pdfKpi("%", L.formatPercent(share), "") +
+      "</section>" + (goals.length ? pdfMix(saved, Math.max(0, L.roundMoney(target - saved))) : "") + table;
+    return statementShell(model, body);
+  }
+
+  var closeStatement = function () {};
+
+  function downloadStatement() {
+    if (!state.data) return;
+    var model = statementModel();
+    var html = model.kind === "goals" ? goalStatementHtml(model) : moneyStatementHtml(model);
     var sheet = document.getElementById("print-sheet");
+    var previous = document.title;
     sheet.hidden = false;
-    sheet.innerHTML = "<h1>Budget Tracker</h1><p>" + esc(t("sheet-for")) + "</p><h2>" +
-      esc(t("sheet-title")) + "</h2><p>" + esc(L.formatMonth(month)) + "</p>" +
-      "<p><strong>" + esc(t("money-in")) + "</strong> " + esc(plainMoney(net.income)) + "</p>" +
-      "<p><strong>" + esc(t("money-out")) + "</strong> " + esc(plainMoney(net.expense)) + "</p>" +
-      "<p><strong>" + esc(t("you-kept")) + "</strong> " + esc(plainMoney(net.net)) + "</p>" +
-      goals + "<p>" + esc(weekInsightText()) + "</p><p>" + esc(t("trust")) + "</p>";
+    sheet.innerHTML = html;
     document.body.classList.add("is-printing");
-    window.print();
-    document.body.classList.remove("is-printing");
-    sheet.hidden = true;
+    document.title = "Budget Tracker - " + model.title;
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      window.removeEventListener("afterprint", finish);
+      document.title = previous;
+      document.body.classList.remove("is-printing");
+      sheet.hidden = true;
+    }
+    closeStatement = finish;
+    window.addEventListener("afterprint", finish);
+    try { window.print(); } catch (e) { finish(); }
   }
 
   function blankDraft() {

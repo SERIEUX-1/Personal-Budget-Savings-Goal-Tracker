@@ -4,17 +4,19 @@
       "id": 1,
       "type": "income",
       "category": "Salary",
-      "amount": 15000.0,
+      "amount": 15000,
       "date": "2026-08-01",
-      "description": "Monthly salary"
+      "description": "Monthly salary",
+      "currency_code": ""
     },
     {
       "id": 2,
       "type": "expense",
       "category": "Rent",
-      "amount": 6000.0,
+      "amount": 6000,
       "date": "2026-08-02",
-      "description": "August rent"
+      "description": "August rent",
+      "currency_code": ""
     },
     {
       "id": 3,
@@ -22,55 +24,62 @@
       "category": "Food & Beverage",
       "amount": 850.5,
       "date": "2026-08-10",
-      "description": "Groceries"
+      "description": "Groceries",
+      "currency_code": ""
     },
     {
       "id": 4,
       "type": "expense",
       "category": "Transport",
-      "amount": 400.0,
+      "amount": 400,
       "date": "2026-08-15",
-      "description": "Bus pass"
+      "description": "Bus pass",
+      "currency_code": ""
     },
     {
       "id": 5,
       "type": "income",
       "category": "Freelance",
-      "amount": 2000.0,
+      "amount": 2000,
       "date": "2026-09-01",
-      "description": "Small web project"
+      "description": "Small web project",
+      "currency_code": ""
     },
     {
       "id": 6,
       "type": "expense",
       "category": "Food & Beverage",
-      "amount": 620.0,
+      "amount": 620,
       "date": "2026-09-03",
-      "description": "Groceries"
+      "description": "Groceries",
+      "currency_code": ""
     },
     {
       "id": 7,
       "type": "expense",
       "category": "Medical Insurance",
-      "amount": 500.0,
+      "amount": 500,
       "date": "2026-09-05",
-      "description": "Monthly premium"
+      "description": "Monthly premium",
+      "currency_code": ""
     },
     {
       "id": 8,
       "type": "income",
       "category": "Salary",
-      "amount": 1000.0,
+      "amount": 1000,
       "date": "2026-09-11",
-      "description": "this is my monthly salary"
+      "description": "this is my monthly salary",
+      "currency_code": ""
     },
     {
       "id": 9,
       "type": "income",
       "category": "Salary",
-      "amount": 10000.0,
+      "amount": 10000,
       "date": "2026-09-11",
-      "description": "This is my monthly salary"
+      "description": "This is my monthly salary",
+      "currency_code": ""
     }
   ],
   "goals": [
@@ -78,49 +87,53 @@
       "id": 1,
       "name": "Emergency Fund",
       "goal_category": "Savings",
-      "target_amount": 20000.0,
-      "current_amount": 6500.0,
-      "deadline": "2027-03-01",
       "goal_type": "normal",
+      "target_amount": 20000,
+      "current_amount": 6500,
+      "deadline": "2027-03-01",
       "specific_detail": "",
-      "monthly_contribution": 0.0,
-      "relevance_reason": ""
+      "monthly_contribution": 0,
+      "relevance_reason": "",
+      "goal_kind": ""
     },
     {
       "id": 2,
       "name": "New Laptop",
       "goal_category": "Savings",
-      "target_amount": 25000.0,
-      "current_amount": 25000.0,
-      "deadline": "2026-12-01",
       "goal_type": "normal",
+      "target_amount": 25000,
+      "current_amount": 25000,
+      "deadline": "2026-12-01",
       "specific_detail": "",
-      "monthly_contribution": 0.0,
-      "relevance_reason": ""
+      "monthly_contribution": 0,
+      "relevance_reason": "",
+      "goal_kind": ""
     },
     {
       "id": 3,
       "name": "Credit Card Payoff",
       "goal_category": "Debt Repayment",
-      "target_amount": 8000.0,
-      "current_amount": 3000.0,
-      "deadline": "2027-01-15",
       "goal_type": "normal",
+      "target_amount": 8000,
+      "current_amount": 3000,
+      "deadline": "2027-01-15",
       "specific_detail": "",
-      "monthly_contribution": 0.0,
-      "relevance_reason": ""
+      "monthly_contribution": 0,
+      "relevance_reason": "",
+      "goal_kind": ""
     },
     {
       "id": 4,
       "name": "Zanzibar Trip",
       "goal_category": "Savings",
       "goal_type": "smart",
-      "target_amount": 15000.0,
-      "current_amount": 2000.0,
+      "target_amount": 15000,
+      "current_amount": 2000,
       "deadline": "2027-01-01",
       "specific_detail": "Save enough for a 2-week trip to Zanzibar including flights and accommodation",
-      "monthly_contribution": 1500.0,
-      "relevance_reason": "I want a proper break after final exams and have wanted to visit Zanzibar for years"
+      "monthly_contribution": 1500,
+      "relevance_reason": "I want a proper break after final exams and have wanted to visit Zanzibar for years",
+      "goal_kind": ""
     }
   ],
   "next_transaction_id": 10,
@@ -143,5 +156,13 @@
     "Debt Repayment",
     "Investment"
   ],
-  "last_seen_month": "2026-09"
+  "last_seen_month": "2026-10",
+  "currency": "USD",
+  "second_currency": "",
+  "language": "en",
+  "text_size": "normal",
+  "setup_complete": true,
+  "showing_example": false,
+  "exchange": null,
+  "updated_at": "2026-10-10T05:38:22.674Z"
 }

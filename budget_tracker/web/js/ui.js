@@ -2821,7 +2821,23 @@ function chip(action, value, label, active) {
     if (month.notice) showNotice(month.notice);
   }
 
+  function dayPart(hour) {
+    if (hour >= 5 && hour < 12) return "morning";
+    if (hour >= 12 && hour < 17) return "afternoon";
+    if (hour >= 17 && hour < 21) return "evening";
+    return "night";
+  }
+
+  function followDay() {
+    var part = "day-" + dayPart(new Date().getHours());
+    ["day-morning", "day-afternoon", "day-evening", "day-night"].forEach(function (name) {
+      document.body.classList.toggle(name, name === part);
+    });
+  }
+
   async function init() {
+    followDay();
+    setInterval(followDay, 60000);
     countVisit();
     state.page = pageFromHash();
     state.hideAmounts = localStorage.getItem("bt-hide") === "1";

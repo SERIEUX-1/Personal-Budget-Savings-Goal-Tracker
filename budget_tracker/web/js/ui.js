@@ -287,6 +287,7 @@
     }
     app.innerHTML = html;
     app.dataset.ready = "1";
+    if (state.page === "settings" && !state.locked && !state.entry && !state.setup) loadVisitors();
     if (!state.setup && !state.locked && state.page === "add" && document.getElementById("tx-form")) prepareTxForm(null);
     if (!state.setup && !state.locked && state.page === "add-goal" && document.getElementById("goal-form")) prepareGoalForm(null);
     setNav();
@@ -919,6 +920,67 @@ function chip(action, value, label, active) {
     });
   }
 
+  var visitorTotal = null;
+  var visitorTask = null;
+
+  function paintVisitors() {
+    var node = document.getElementById("visitor-count");
+    if (!node) return;
+    node.textContent = visitorTotal == null ? t("visitors-none") : t("visitors-count", { n: visitorTotal });
+  }
+
+  function rememberVisitors(body) {
+    var n = Number(body && body.value);
+    if (!isFinite(n)) return false;
+    visitorTotal = n;
+    return true;
+  }
+
+  function countVisit() {
+    if (location.hostname !== "serieux-1.github.io") return Promise.resolve();
+    try {
+      if (localStorage.getItem("bt-opened") === "1") return Promise.resolve();
+    } catch (err) {
+      return Promise.resolve();
+    }
+    if (visitorTask) return visitorTask;
+    visitorTask = fetch("https://abacus.jasoncameron.dev/hit/serieux-1.github.io/opened").then(function (response) {
+      if (!response.ok) throw new Error("count");
+      return response.json();
+    }).then(function (body) {
+      if (!rememberVisitors(body)) throw new Error("count");
+      try { localStorage.setItem("bt-opened", "1"); } catch (err) {}
+    }).catch(function () {
+      visitorTask = null;
+    });
+    return visitorTask;
+  }
+
+  function loadVisitors() {
+    var node = document.getElementById("visitor-count");
+    if (!node) return;
+    node.textContent = t("visitors-wait");
+    var pending = visitorTask || Promise.resolve();
+    pending.then(function () {
+      if (!document.getElementById("visitor-count")) return;
+      if (visitorTotal != null && visitorTask) {
+        paintVisitors();
+        return;
+      }
+      return fetch("https://abacus.jasoncameron.dev/get/serieux-1.github.io/opened").then(function (response) {
+        if (response.status === 404) return { value: 0 };
+        if (!response.ok) throw new Error("count");
+        return response.json();
+      }).then(function (body) {
+        if (!rememberVisitors(body)) throw new Error("count");
+        paintVisitors();
+      });
+    }).catch(function () {
+      visitorTotal = null;
+      paintVisitors();
+    });
+  }
+
   function renderSettings() {
     var currency = canonicalCurrency(state.data.currency || "");
     var second = state.data.second_currency || "";
@@ -938,6 +1000,8 @@ function chip(action, value, label, active) {
       chip("set-size", "larger", t("size-larger"), size);
     var locked = window.BT.vault.hasLock();
     return "<h1>" + esc(t("settings")) + "</h1>" +
+      '<section class="block"><h2>' + esc(t("visitors-title")) + '</h2><p id="visitor-count">' + esc(t("visitors-wait")) +
+      '</p><p class="trust">' + esc(t("visitors-note")) + "</p></section>" +
       '<section class="block"><h2>' + esc(t("language")) + "</h2>" + languageSearchBox(lang) + "</section>" +
       '<section class="block"><h2>' + esc(t("text-size")) + '</h2><div class="chip-row">' + sizes + "</div></section>" +
       '<section class="block"><h2>' + esc(t("currency")) + '</h2><p class="lede">' + esc(t("currency-help")) + "</p>" +
@@ -2758,6 +2822,7 @@ function chip(action, value, label, active) {
   }
 
   async function init() {
+    countVisit();
     state.page = pageFromHash();
     state.hideAmounts = localStorage.getItem("bt-hide") === "1";
     var savedLang = localStorage.getItem("bt-lang");

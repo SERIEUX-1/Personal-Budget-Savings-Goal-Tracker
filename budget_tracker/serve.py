@@ -43,7 +43,7 @@ ROOM_TOKEN = ""
 SECURITY_HEADERS = (
     ("Content-Security-Policy",
      "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
-     "connect-src 'self' https://api.frankfurter.dev; manifest-src 'self'; worker-src 'self'; "
+     "connect-src 'self' https://api.frankfurter.dev https://abacus.jasoncameron.dev; manifest-src 'self'; worker-src 'self'; "
      "base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'none'"),
     ("Referrer-Policy", "no-referrer"),
     ("X-Frame-Options", "DENY"),

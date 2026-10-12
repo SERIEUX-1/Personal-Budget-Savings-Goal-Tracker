@@ -579,7 +579,8 @@ function chip(action, value, label, active) {
   }
 
   function renderMenu() {
-    return '<section class="cli-board"><h1>' + esc(t("m-title")) + '</h1><p class="lede cli-lead">' + esc(t("menu-lead")) +
+    return reminderAskCard() +
+      '<section class="cli-board"><h1>' + esc(t("m-title")) + '</h1><p class="lede cli-lead">' + esc(t("menu-lead")) +
       '</p><div class="cli-rule"></div>' + menuMarkup() + '<div class="cli-rule"></div>' +
       '<div class="row-actions"><button type="button" class="btn btn-secondary" data-action="nav" data-page="check">' +
       esc(t("check-report")) + "</button></div>" + stepButtons() + "</section>";
@@ -981,6 +982,249 @@ function chip(action, value, label, active) {
     });
   }
 
+  function localDayKey(date) {
+    var month = date.getMonth() + 1;
+    var day = date.getDate();
+    return date.getFullYear() + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
+  }
+
+  function msUntilEight(now) {
+    var next = new Date(now.getTime());
+    next.setHours(20, 0, 0, 0);
+    if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
+    return next.getTime() - now.getTime();
+  }
+
+  function remindDb() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error("no-db")); return; }
+      var req = indexedDB.open("bt-remind", 1);
+      req.onupgradeneeded = function () {
+        if (!req.result.objectStoreNames.contains("kv")) req.result.createObjectStore("kv");
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function remindPut(key, value) {
+    return remindDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        var tx = db.transaction("kv", "readwrite");
+        tx.objectStore("kv").put(value, key);
+        tx.oncomplete = function () { resolve(); };
+        tx.onerror = function () { reject(tx.error); };
+      });
+    }).catch(function () {});
+  }
+
+  function reminderAllowed() {
+    return localStorage.getItem("bt-reminder") === "1" &&
+      typeof Notification !== "undefined" && Notification.permission === "granted";
+  }
+
+  var reminderTimer = 0;
+  var reminderBusy = false;
+
+  function armReminder() {
+    clearTimeout(reminderTimer);
+    reminderTimer = 0;
+    if (!reminderAllowed()) return;
+    var now = new Date();
+    var wait = msUntilEight(now);
+    if (now.getHours() >= 20 && localStorage.getItem("bt-reminded") !== localDayKey(now)) wait = 800;
+    reminderTimer = setTimeout(function () {
+      maybeRemindNow();
+      if (!reminderBusy) armReminder();
+    }, wait);
+  }
+
+  function reminderOptions(tag) {
+    return {
+      body: t("remind-notify-body"),
+      icon: "icons/icon-192.png",
+      badge: "icons/icon-192.png",
+      tag: tag,
+      lang: (state.data && state.data.language) || localStorage.getItem("bt-lang") || "en",
+      data: { url: "./index.html#menu" }
+    };
+  }
+
+  function showReminder(tag, fromUser) {
+    var title = t("remind-notify-title");
+    var options = reminderOptions(tag);
+    function plain() {
+      try {
+        new Notification(title, options);
+        return true;
+      } catch (err) {
+        if (fromUser) toast(t("remind-unsupported"));
+        return false;
+      }
+    }
+    if (!("serviceWorker" in navigator)) return Promise.resolve(plain());
+    return navigator.serviceWorker.ready.then(function (reg) {
+      return reg.showNotification(title, options).then(function () { return true; });
+    }).catch(function () { return plain(); });
+  }
+
+  function maybeRemindNow() {
+    if (reminderBusy || !reminderAllowed()) return;
+    var now = new Date();
+    if (now.getHours() < 20) return;
+    var day = localDayKey(now);
+    if (localStorage.getItem("bt-reminded") === day) return;
+    reminderBusy = true;
+    showReminder("bt-evening-" + day, false).then(function (ok) {
+      if (!ok) return;
+      localStorage.setItem("bt-reminded", day);
+      return remindPut("reminded", day);
+    }).finally(function () {
+      reminderBusy = false;
+      armReminder();
+    });
+  }
+
+  function clearEveningNotes(reg) {
+    var pending = [];
+    if (reg.getNotifications) {
+      pending.push(reg.getNotifications({ includeTriggered: true }).then(function (list) {
+        list.forEach(function (note) {
+          if (note.tag && note.tag.indexOf("bt-evening") === 0) note.close();
+        });
+      }).catch(function () {}));
+    }
+    if (reg.periodicSync && reg.periodicSync.unregister) {
+      pending.push(reg.periodicSync.unregister("evening-reminder").catch(function () {}));
+    }
+    return Promise.all(pending);
+  }
+
+  function scheduleEveningTriggers(reg) {
+    if (typeof TimestampTrigger !== "function") return Promise.resolve();
+    var title = t("remind-notify-title");
+    var now = new Date();
+    var when = new Date(now.getTime());
+    when.setHours(20, 0, 0, 0);
+    if (when.getTime() <= now.getTime()) when.setDate(when.getDate() + 1);
+    var jobs = [];
+    var i;
+    for (i = 0; i < 14; i++) {
+      var at = new Date(when.getTime());
+      jobs.push(reg.showNotification(title, Object.assign(reminderOptions("bt-evening-" + localDayKey(at)), {
+        showTrigger: new TimestampTrigger(at.getTime())
+      })).catch(function () {}));
+      when.setDate(when.getDate() + 1);
+    }
+    return Promise.all(jobs);
+  }
+
+  function syncReminderPrefs() {
+    var on = reminderAllowed();
+    return remindPut("prefs", {
+      on: on,
+      title: t("remind-notify-title"),
+      body: t("remind-notify-body"),
+      lang: (state.data && state.data.language) || localStorage.getItem("bt-lang") || "en"
+    }).then(function () {
+      if (!("serviceWorker" in navigator)) return;
+      return navigator.serviceWorker.ready.then(function (reg) {
+        if (!on) return clearEveningNotes(reg);
+        var extra = [];
+        if (reg.periodicSync && reg.periodicSync.register) {
+          try {
+            extra.push(reg.periodicSync.register("evening-reminder", {
+              minInterval: 12 * 60 * 60 * 1000
+            }).catch(function () {}));
+          } catch (err) {}
+        }
+        extra.push(scheduleEveningTriggers(reg));
+        return Promise.all(extra);
+      });
+    }).catch(function () {});
+  }
+
+  function askNotifyPermission() {
+    return new Promise(function (resolve) {
+      try {
+        var result = Notification.requestPermission(function (value) { resolve(value); });
+        if (result && result.then) result.then(resolve, function () { resolve("denied"); });
+      } catch (err) {
+        resolve("denied");
+      }
+    });
+  }
+
+  function enableReminder() {
+    if (typeof Notification === "undefined") {
+      localStorage.setItem("bt-reminder-asked", "1");
+      toast(t("remind-unsupported"));
+      render();
+      return;
+    }
+    var pending = Notification.permission === "granted" ? Promise.resolve("granted") : askNotifyPermission();
+    pending.then(function (perm) {
+      localStorage.setItem("bt-reminder-asked", "1");
+      if (perm !== "granted") {
+        localStorage.setItem("bt-reminder", "0");
+        toast(t("remind-denied"));
+        render();
+        return;
+      }
+      localStorage.setItem("bt-reminder", "1");
+      armReminder();
+      maybeRemindNow();
+      syncReminderPrefs();
+      toast(t("remind-on"));
+      render();
+    });
+  }
+
+  function declineReminder() {
+    localStorage.setItem("bt-reminder-asked", "1");
+    localStorage.setItem("bt-reminder", "0");
+    render();
+  }
+
+  function disableReminder() {
+    localStorage.setItem("bt-reminder-asked", "1");
+    localStorage.setItem("bt-reminder", "0");
+    clearTimeout(reminderTimer);
+    reminderTimer = 0;
+    syncReminderPrefs();
+    toast(t("remind-off"));
+    render();
+  }
+
+  function tryReminder() {
+    if (!reminderAllowed()) { enableReminder(); return; }
+    showReminder("bt-evening-try-" + Date.now(), true).then(function (ok) {
+      if (ok) toast(t("remind-sent"));
+    });
+  }
+
+  function reminderAskCard() {
+    if (localStorage.getItem("bt-reminder-asked") === "1") return "";
+    if (reminderAllowed()) return "";
+    return '<section class="welcome remind-ask no-print"><p>' + esc(t("remind-ask")) + "</p>" +
+      '<div class="row-actions"><button type="button" class="btn btn-primary" data-action="remind-on">' +
+      esc(t("remind-yes")) + '</button><button type="button" class="btn btn-secondary" data-action="remind-later">' +
+      esc(t("remind-later")) + "</button></div></section>";
+  }
+
+  function reminderBlock() {
+    var on = reminderAllowed();
+    var denied = typeof Notification !== "undefined" && Notification.permission === "denied";
+    var status = on ? t("remind-on") : (denied ? t("remind-denied") : t("remind-body"));
+    var buttons = on
+      ? '<button type="button" class="btn btn-secondary" data-action="remind-off">' + esc(t("remind-turn-off")) + "</button>" +
+        '<button type="button" class="btn btn-primary" data-action="remind-try">' + esc(t("remind-try")) + "</button>"
+      : '<button type="button" class="btn btn-primary" data-action="remind-on">' + esc(t("remind-turn-on")) + "</button>";
+    return '<section class="block"><h2>' + esc(t("remind-title")) + "</h2><p>" + esc(status) + "</p>" +
+      '<p class="trust">' + esc(t("remind-note")) + "</p>" +
+      '<div class="row-actions">' + buttons + "</div></section>";
+  }
+
   function renderSettings() {
     var currency = canonicalCurrency(state.data.currency || "");
     var second = state.data.second_currency || "";
@@ -1002,6 +1246,7 @@ function chip(action, value, label, active) {
     return "<h1>" + esc(t("settings")) + "</h1>" +
       '<section class="block"><h2>' + esc(t("visitors-title")) + '</h2><p id="visitor-count">' + esc(t("visitors-wait")) +
       '</p><p class="trust">' + esc(t("visitors-note")) + "</p></section>" +
+      reminderBlock() +
       '<section class="block"><h2>' + esc(t("language")) + "</h2>" + languageSearchBox(lang) + "</section>" +
       '<section class="block"><h2>' + esc(t("text-size")) + '</h2><div class="chip-row">' + sizes + "</div></section>" +
       '<section class="block"><h2>' + esc(t("currency")) + '</h2><p class="lede">' + esc(t("currency-help")) + "</p>" +
@@ -1385,6 +1630,10 @@ function chip(action, value, label, active) {
     if (action === "set-size") { chooseSize(btn.dataset.value); return; }
     if (action === "set-cushion") { createCushion(); return; }
     if (action === "speak-name") { dictate(btn.dataset.target); return; }
+    if (action === "remind-on") { enableReminder(); return; }
+    if (action === "remind-later") { declineReminder(); return; }
+    if (action === "remind-off") { disableReminder(); return; }
+    if (action === "remind-try") { tryReminder(); return; }
     if (action === "set-lock") { openPinSetup(false); return; }
     if (action === "remove-lock") { openPinSetup(true); return; }
     if (action === "home-period") {
@@ -2009,6 +2258,8 @@ function chip(action, value, label, active) {
     if (!state.data) state.data = store.emptyData();
     state.data.language = code;
     localStorage.setItem("bt-lang", code);
+    window.BT.i18n.set(code);
+    syncReminderPrefs();
     if (state.setup || state.entry) {
       render();
       if (state.entry) persist("");
@@ -2837,7 +3088,15 @@ function chip(action, value, label, active) {
 
   async function init() {
     followDay();
-    setInterval(followDay, 60000);
+    setInterval(function () {
+      followDay();
+      if (new Date().getHours() >= 20) maybeRemindNow();
+    }, 60000);
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" && new Date().getHours() >= 20) maybeRemindNow();
+    });
+    armReminder();
+    syncReminderPrefs();
     countVisit();
     state.page = pageFromHash();
     state.hideAmounts = localStorage.getItem("bt-hide") === "1";

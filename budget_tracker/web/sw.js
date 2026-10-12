@@ -2,7 +2,7 @@
  * The app shell is stored on the phone so Budget Tracker opens with no internet.
  * Records are not cached here; they stay in the JSON file or in the browser.
  */
-var CACHE = "budget-tracker-v50";
+var CACHE = "budget-tracker-v51";
 var ASSETS = [
   "./",
   "./index.html",
@@ -81,5 +81,79 @@ self.addEventListener("fetch", function (event) {
     return matchShell(event.request).then(function (cached) {
       return cached || caches.match("./index.html");
     });
+  }));
+});
+
+function remindDb() {
+  return new Promise(function (resolve, reject) {
+    var req = indexedDB.open("bt-remind", 1);
+    req.onupgradeneeded = function () {
+      if (!req.result.objectStoreNames.contains("kv")) req.result.createObjectStore("kv");
+    };
+    req.onsuccess = function () { resolve(req.result); };
+    req.onerror = function () { reject(req.error); };
+  });
+}
+
+function remindGet(key) {
+  return remindDb().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      var req = db.transaction("kv", "readonly").objectStore("kv").get(key);
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  });
+}
+
+function remindPut(key, value) {
+  return remindDb().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction("kv", "readwrite");
+      tx.objectStore("kv").put(value, key);
+      tx.oncomplete = function () { resolve(); };
+      tx.onerror = function () { reject(tx.error); };
+    });
+  });
+}
+
+function localDayKey(date) {
+  var month = date.getMonth() + 1;
+  var day = date.getDate();
+  return date.getFullYear() + "-" + (month < 10 ? "0" : "") + month + "-" + (day < 10 ? "0" : "") + day;
+}
+
+function showEveningFromWorker() {
+  var now = new Date();
+  if (now.getHours() < 20) return Promise.resolve();
+  var day = localDayKey(now);
+  return remindGet("prefs").then(function (prefs) {
+    if (!prefs || !prefs.on) return;
+    return remindGet("reminded").then(function (seen) {
+      if (seen === day) return;
+      return remindPut("reminded", day).then(function () {
+        return self.registration.showNotification(prefs.title || "Budget Tracker", {
+          body: prefs.body || "",
+          icon: "icons/icon-192.png",
+          badge: "icons/icon-192.png",
+          tag: "bt-evening-" + day,
+          lang: prefs.lang || "en",
+          data: { url: "./index.html#menu" }
+        });
+      });
+    });
+  }).catch(function () {});
+}
+
+self.addEventListener("periodicsync", function (event) {
+  if (event.tag !== "evening-reminder") return;
+  event.waitUntil(showEveningFromWorker());
+});
+
+self.addEventListener("notificationclick", function (event) {
+  event.notification.close();
+  var target = new URL("./index.html#menu", self.location).href;
+  event.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
+    if (list.length && list[0].focus) return list[0].focus();
+    if (self.clients.openWindow) return self.clients.openWindow(target);
   }));
 });

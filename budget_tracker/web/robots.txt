@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://serieux-1.github.io/Personal-Budget-Savings-Goal-Tracker/sitemap.xml

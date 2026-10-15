@@ -197,6 +197,7 @@
   }
 
   function turnLabel(page) {
+    if (page === "entry") return t("entry-money");
     if (page === "menu") return t("menu");
     return pageTitle(page);
   }
@@ -204,7 +205,7 @@
   function neighbors() {
     if (state.page === "settings" || state.page === "check") return { index: -1, prev: "menu", next: "" };
     var index = TURN.indexOf(state.page);
-    if (index === -1) return { index: -1, prev: "", next: TURN[0] };
+    if (index === -1) return { index: -1, prev: "entry", next: TURN[0] };
     return {
       index: index,
       prev: index > 0 ? TURN[index - 1] : "menu",
@@ -217,8 +218,10 @@
     var index = near.index;
     var prev = near.prev;
     var next = near.next;
+    var prevAction = prev === "entry" ? "go-entry" : "nav";
+    var prevData = prev === "entry" ? "" : ' data-page="' + prev + '"';
     var prevBtn = prev
-      ? '<button type="button" class="turn-btn turn-prev" data-action="nav" data-page="' + prev + '"><strong>' + esc(t("page-back")) + '</strong><span class="turn-kicker">' + esc(turnLabel(prev)) + "</span></button>"
+      ? '<button type="button" class="turn-btn turn-prev" data-action="' + prevAction + '"' + prevData + '><strong>' + esc(t("page-back")) + '</strong><span class="turn-kicker">' + esc(turnLabel(prev)) + "</span></button>"
       : '<span class="turn-btn turn-empty"></span>';
     var nextBtn = next
       ? '<button type="button" class="turn-btn turn-next" data-action="nav" data-page="' + next + '"><strong>' + esc(t("page-next")) + '</strong><span class="turn-kicker">' + esc(turnLabel(next)) + "</span></button>"
@@ -561,8 +564,10 @@ function chip(action, value, label, active) {
   function stepButtons() {
     var near = neighbors();
     if (!near.prev && !near.next) return "";
+    var prevAction = near.prev === "entry" ? "go-entry" : "nav";
+    var prevData = near.prev === "entry" ? "" : ' data-page="' + near.prev + '"';
     var prev = near.prev
-      ? '<button type="button" class="btn btn-secondary" data-action="nav" data-page="' + near.prev + '">' + esc(t("page-back")) + "</button>"
+      ? '<button type="button" class="btn btn-secondary" data-action="' + prevAction + '"' + prevData + '>' + esc(t("page-back")) + "</button>"
       : "<span></span>";
     var next = near.next
       ? '<button type="button" class="btn btn-primary" data-action="nav" data-page="' + near.next + '">' + esc(t("page-next")) + "</button>"
@@ -1614,6 +1619,13 @@ function chip(action, value, label, active) {
     if (action === "entry-back") {
       state.entry = "lang";
       state.currencyQuery = "";
+      render();
+      return;
+    }
+    if (action === "go-entry") {
+      state.entry = "money";
+      state.currencyQuery = "";
+      if (!state.entryCurrency) state.entryCurrency = canonicalCurrency((state.data && state.data.currency) || "");
       render();
       return;
     }
